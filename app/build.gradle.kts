@@ -51,6 +51,8 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.camera.camera2.pipe)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -2,6 +2,7 @@ package com.example.demoapp.features.login
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +32,10 @@ import com.example.demoapp.R
 
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = viewModel() // Se crea o se obtiene el ViewModel
+    viewModel: LoginViewModel = viewModel(), // Se crea o se obtiene el ViewModel
+    onForgotPasswordClick: () -> Unit = {},
+    onChangePasswordClick: () -> Unit = {}
+
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(30.dp),
@@ -99,5 +103,18 @@ fun LoginScreen(
             }
         )
 
+        Text(
+            text = "¿Olvidaste tu contraseña?",
+            color = Color.Blue,
+            modifier = Modifier.padding(top = 8.dp)
+                .clickable { onForgotPasswordClick() }
+        )
+
+        Text(
+            text = "Cambiar contraseña",
+            color = Color.Blue,
+            modifier = Modifier.padding(top = 4.dp)
+                .clickable { onChangePasswordClick() }
+        )
     }
 }
