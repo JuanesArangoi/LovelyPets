@@ -116,5 +116,19 @@ fun LoginScreen(
             modifier = Modifier.padding(top = 4.dp)
                 .clickable { onChangePasswordClick() }
         )
+
+        Text(
+            text = "¿Olvidaste tu contraseña?",
+            color = Color.Blue,
+            modifier = Modifier.padding(top = 8.dp)
+                .clickable { onForgotPasswordClick() }
+        )
+
+        Text(
+            text = "Cambiar contraseña",
+            color = Color.Blue,
+            modifier = Modifier.padding(top = 4.dp)
+                .clickable { onChangePasswordClick() }
+        )
     }
 }
