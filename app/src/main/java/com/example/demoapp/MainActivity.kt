@@ -1,5 +1,8 @@
 package com.example.demoapp
 
+import com.example.demoapp.features.register.RegisterScreen
+
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,7 +18,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LoginScreen()
+            RegisterScreen()
         }
     }
 }
