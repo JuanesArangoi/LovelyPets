@@ -3,7 +3,10 @@ package com.example.demoapp.features.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
@@ -11,6 +14,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,61 +24,70 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.demoapp.R
 
+/**
+ * Pantalla de bienvenida de la aplicación LovelyPets.
+ * Ofrece opciones para iniciar sesión o crear una cuenta nueva.
+ */
 @Composable
-fun HomeScreen() {
-
-//    Button(
-//        modifier = Modifier
-//            .size(width = 200.dp, height = 60.dp),
-//        onClick = {}
-//
-//    ){
+fun HomeScreen(
+    onNavigateToLogin: () -> Unit,      // Función para navegar a la pantalla de Login
+    onNavigateToRegister: () -> Unit    // Función para navegar a la pantalla de Registro
+) {
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically), // Espacio entre elementos y centrado vertical
+        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically)
     ) {
-
+        // Logo de la aplicación
         Image(
             painter = painterResource(R.drawable.cait),
-            contentDescription = "logo"
-
+            contentDescription = "Logo de LovelyPets"
         )
+
+        // Texto de bienvenida
         Text(
-            modifier = Modifier.width(200.dp),
-            text = "Hola esta aplicacion es de animales, diseñada para :)",
-                    fontSize = 25.sp
-
+            text = "🐾 LovelyPets",
+            style = MaterialTheme.typography.headlineLarge
         )
 
-        Button(
-            modifier = Modifier
-                .size(width = 200.dp, height = 60.dp),
-            onClick = {}
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Icono de persona"
-            )
+        Text(
+            text = "Red de adopción de mascotas",
+            fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
-            Text(
-                text = "Iniciar Sesión"
-            )
-        }
-        Button(
-            modifier = Modifier
-                .size(width = 200.dp, height = 60.dp),
-            onClick = {}
-        ) {
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = "Icono de favorito"
-            )
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Crear Cuenta"
-            )
+        // Botones de navegación
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(15.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Botón de iniciar sesión
+            Button(
+                modifier = Modifier.size(width = 170.dp, height = 50.dp),
+                onClick = onNavigateToLogin // Navegar a Login
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Icono de persona"
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "Iniciar Sesión")
+            }
+
+            // Botón de crear cuenta
+            Button(
+                modifier = Modifier.size(width = 170.dp, height = 50.dp),
+                onClick = onNavigateToRegister // Navegar a Registro
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Icono de favorito"
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "Crear Cuenta")
+            }
         }
     }
 }

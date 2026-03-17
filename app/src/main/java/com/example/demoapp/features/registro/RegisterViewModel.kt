@@ -1,11 +1,22 @@
-package com.example.demoapp.features.register
+package com.example.demoapp.features.registro
 
 import android.util.Patterns
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.demoapp.core.utils.ValidatedField
+import com.example.demoapp.data.SessionManager
+import com.example.demoapp.domain.model.User
+import java.util.UUID
 
+/**
+ * ViewModel que gestiona el formulario de registro de nuevo usuario.
+ * Valida los campos y registra al usuario en SessionManager.
+ */
 class RegisterViewModel : ViewModel() {
 
+    // Campo: Nombre completo
     val fullName = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El nombre completo es obligatorio"
@@ -15,6 +26,7 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
+    // Campo: Email
     val email = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El email es obligatorio"
@@ -23,6 +35,7 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
+    // Campo: Contraseña
     val password = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "La contraseña es obligatoria"
@@ -31,6 +44,7 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
+    // Campo: Confirmar contraseña
     val confirmPassword = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "Confirma tu contraseña"
@@ -39,6 +53,7 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
+    // Campo: Teléfono
     val phone = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El teléfono es obligatorio"
@@ -48,14 +63,20 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
+    // Campo: Ubicación (ciudad)
     val location = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "La ubicación es obligatoria"
-            value.trim().length < 3 -> "Ingresa una ubicación válida"
+            value.isEmpty() -> "La ciudad es obligatoria"
+            value.trim().length < 3 -> "Ingresa una ciudad válida"
             else -> null
         }
     }
 
+    // Resultado del registro (null = no intentado, true = éxito, false = error)
+    var registerResult by mutableStateOf<Boolean?>(null)
+        private set
+
+    // Indica si el formulario es válido
     val isFormValid: Boolean
         get() = fullName.isValid
                 && email.isValid
@@ -64,6 +85,32 @@ class RegisterViewModel : ViewModel() {
                 && phone.isValid
                 && location.isValid
 
+    /**
+     * Registra un nuevo usuario usando SessionManager.
+     */
+    fun register() {
+        val newUser = User(
+            id = UUID.randomUUID().toString(),
+            name = fullName.value,
+            email = email.value,
+            password = password.value,
+            phoneNumber = phone.value,
+            city = location.value
+        )
+
+        registerResult = SessionManager.register(newUser)
+    }
+
+    /**
+     * Resetea el resultado del registro.
+     */
+    fun resetRegisterResult() {
+        registerResult = null
+    }
+
+    /**
+     * Resetea todos los campos del formulario.
+     */
     fun resetForm() {
         fullName.reset()
         email.reset()
@@ -71,5 +118,6 @@ class RegisterViewModel : ViewModel() {
         confirmPassword.reset()
         phone.reset()
         location.reset()
+        registerResult = null
     }
 }

@@ -1,4 +1,4 @@
-package com.example.demoapp.features.register
+package com.example.demoapp.features.registro
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -25,6 +25,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -38,12 +39,31 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.demoapp.R
 import kotlinx.coroutines.launch
 
+/**
+ * Pantalla de registro de nuevo usuario.
+ * Incluye campos validados y navega al feed de mascotas después del registro exitoso.
+ */
 @Composable
 fun RegisterScreen(
-    viewModel: RegisterViewModel = viewModel() // Se crea o se obtiene el ViewModel
+    viewModel: RegisterViewModel = viewModel(),    // Se crea o se obtiene el ViewModel
+    onRegisterSuccess: () -> Unit = {}             // Navegar al feed tras registro exitoso
 ) {
-    val snackbarHostState = remember { SnackbarHostState() } // Estado del Snackbar
-    val coroutineScope = rememberCoroutineScope() // Scope para lanzar el Snackbar
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Efecto para manejar el resultado del registro
+    LaunchedEffect(viewModel.registerResult) {
+        viewModel.registerResult?.let { success ->
+            if (success) {
+                snackbarHostState.showSnackbar("¡Registro exitoso!")
+                viewModel.resetForm()
+                onRegisterSuccess() // Navegar al feed de mascotas
+            } else {
+                snackbarHostState.showSnackbar("El email ya está registrado")
+                viewModel.resetRegisterResult()
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -57,7 +77,7 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 16.dp, alignment = CenterVertically)
         ) {
-
+            // Logo de la aplicación
             Image(
                 painter = painterResource(R.mipmap.mascota),
                 contentDescription = "Logo de la Aplicación"
@@ -68,6 +88,7 @@ fun RegisterScreen(
                 style = MaterialTheme.typography.headlineMedium
             )
 
+            // Campo: Nombre completo
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.fullName.value,
@@ -86,6 +107,7 @@ fun RegisterScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
             )
 
+            // Campo: Correo electrónico
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.email.value,
@@ -104,6 +126,7 @@ fun RegisterScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
+            // Campo: Contraseña
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.password.value,
@@ -123,6 +146,7 @@ fun RegisterScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
+            // Campo: Confirmar contraseña
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.confirmPassword.value,
@@ -142,6 +166,7 @@ fun RegisterScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
+            // Campo: Teléfono
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.phone.value,
@@ -160,11 +185,12 @@ fun RegisterScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
             )
 
+            // Campo: Ubicación
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.location.value,
                 onValueChange = { viewModel.location.onChange(it) },
-                label = { Text(text = "Ubicación") },
+                label = { Text(text = "Ciudad") },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Place,
@@ -178,14 +204,11 @@ fun RegisterScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
             )
 
+            // Botón de registrarse
             Button(
-                onClick = {
-                    Log.d("Register", "Nombre: ${viewModel.fullName.value}, Email: ${viewModel.email.value}, Teléfono: ${viewModel.phone.value}, Ubicación: ${viewModel.location.value}")
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("¡Registro exitoso!") // Muestra el Snackbar
-                    }
-                },
+                onClick = { viewModel.register() },
                 enabled = viewModel.isFormValid,
+                modifier = Modifier.fillMaxWidth(),
                 content = {
                     Text(text = "Registrarse")
                 }
