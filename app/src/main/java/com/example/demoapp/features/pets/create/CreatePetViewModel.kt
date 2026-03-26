@@ -5,23 +5,30 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.demoapp.core.utils.ValidatedField
-import com.example.demoapp.data.SessionManager
-import com.example.demoapp.data.repository.PetRepository
 import com.example.demoapp.domain.model.Location
 import com.example.demoapp.domain.model.Pet
 import com.example.demoapp.domain.model.PetCategory
+import com.example.demoapp.domain.model.PetStatus
+import com.example.demoapp.domain.repository.PetRepository
+import com.example.demoapp.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
- * ViewModel que gestiona el formulario de creación de una nueva publicación de mascota.
- * Usa ValidatedField para la validación de campos del formulario.
+ * ViewModel para la creación de una nueva publicación de mascota.
+ * Implementa validación de formulario con ValidatedField.
  */
-class CreatePetViewModel : ViewModel() {
+@HiltViewModel
+class CreatePetViewModel @Inject constructor(
+    private val petRepository: PetRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
 
-    // Campos validados del formulario
+    // Campos del formulario con validación
     val title = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El título es obligatorio"
-            value.trim().length < 5 -> "El título debe tener al menos 5 caracteres"
+            value.length < 5 -> "El título debe tener al menos 5 caracteres"
             else -> null
         }
     }
@@ -29,7 +36,7 @@ class CreatePetViewModel : ViewModel() {
     val description = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "La descripción es obligatoria"
-            value.trim().length < 10 -> "La descripción debe tener al menos 10 caracteres"
+            value.length < 20 -> "La descripción debe tener al menos 20 caracteres"
             else -> null
         }
     }
@@ -39,10 +46,6 @@ class CreatePetViewModel : ViewModel() {
             value.isEmpty() -> "El tipo de animal es obligatorio"
             else -> null
         }
-    }
-
-    val breed = ValidatedField("") { value ->
-        null // Campo opcional, sin validación
     }
 
     val size = ValidatedField("") { value ->
@@ -60,11 +63,11 @@ class CreatePetViewModel : ViewModel() {
         }
     }
 
-    // Categoría seleccionada
+    // Estado de la categoría seleccionada
     var selectedCategory by mutableStateOf(PetCategory.ADOPCION)
         private set
 
-    // Tiene vacunas (checkbox)
+    // Estado de vacunación
     var hasVaccines by mutableStateOf(false)
         private set
 
@@ -72,76 +75,47 @@ class CreatePetViewModel : ViewModel() {
     var createResult by mutableStateOf<Boolean?>(null)
         private set
 
-    // Indica si el formulario es válido
     val isFormValid: Boolean
-        get() = title.isValid
-                && description.isValid
-                && animalType.isValid
-                && size.isValid
-                && photoUrl.isValid
+        get() = title.isValid && description.isValid && animalType.isValid
+                && size.isValid && photoUrl.isValid
 
-    /**
-     * Actualiza la categoría seleccionada.
-     */
-    fun onCategoryChange(category: PetCategory) {
+    fun onCategorySelected(category: PetCategory) {
         selectedCategory = category
     }
 
-    /**
-     * Actualiza el estado de vacunas.
-     */
-    fun onVaccinesChange(value: Boolean) {
+    fun onVaccinesChanged(value: Boolean) {
         hasVaccines = value
     }
 
     /**
-     * Crea una nueva publicación de mascota.
+     * Crea la publicación usando el PetRepository.
      */
     fun createPet() {
-        val currentUser = SessionManager.currentUser
-        if (currentUser == null) {
+        val currentUser = userRepository.currentUser.value
+        if (currentUser == null || !isFormValid) {
             createResult = false
             return
         }
 
         val newPet = Pet(
-            id = "", // Se asignará en el repositorio
             title = title.value,
             description = description.value,
             category = selectedCategory,
+            status = PetStatus.PENDIENTE,
             animalType = animalType.value,
-            breed = breed.value,
             size = size.value,
             hasVaccines = hasVaccines,
             photoUrl = photoUrl.value,
-            location = Location(4.8133, -75.6961), // Ubicación por defecto (Pereira)
+            location = Location(4.8133, -75.6961),
             ownerId = currentUser.id,
             ownerName = currentUser.name
         )
 
-        PetRepository.createPet(newPet)
+        petRepository.create(newPet)
         createResult = true
     }
 
-    /**
-     * Resetea el resultado de creación.
-     */
     fun resetResult() {
-        createResult = null
-    }
-
-    /**
-     * Resetea todos los campos del formulario.
-     */
-    fun resetForm() {
-        title.reset()
-        description.reset()
-        animalType.reset()
-        breed.reset()
-        size.reset()
-        photoUrl.reset()
-        selectedCategory = PetCategory.ADOPCION
-        hasVaccines = false
         createResult = null
     }
 }

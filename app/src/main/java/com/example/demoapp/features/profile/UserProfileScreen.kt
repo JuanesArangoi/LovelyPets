@@ -44,8 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.demoapp.data.SessionManager
+import androidx.hilt.navigation.compose.hiltViewModel
 
 /**
  * Pantalla de perfil del usuario.
@@ -54,26 +53,27 @@ import com.example.demoapp.data.SessionManager
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
-    viewModel: UserProfileViewModel = viewModel(),
-    onNavigateBack: () -> Unit,           // Volver atrás
-    onAccountDeleted: () -> Unit          // Cuando se elimina la cuenta, volver a Home
+    viewModel: UserProfileViewModel = hiltViewModel(),
+    paddingValues: PaddingValues = PaddingValues(),
+    onNavigateBack: () -> Unit,
+    onAccountDeleted: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    val currentUser = SessionManager.currentUser
+    val currentUser = viewModel.getCurrentUser()
 
     // Cargar perfil al entrar
     LaunchedEffect(Unit) {
-        viewModel.loadProfile()
+        viewModel.loadUserData()
     }
 
     // Manejar resultado de edición
-    LaunchedEffect(viewModel.editResult) {
-        viewModel.editResult?.let { success ->
+    LaunchedEffect(viewModel.updateResult) {
+        viewModel.updateResult?.let { success ->
             if (success) {
                 snackbarHostState.showSnackbar("¡Perfil actualizado exitosamente!")
-                viewModel.resetEditResult()
+                viewModel.resetUpdateResult()
             }
         }
     }
@@ -227,9 +227,9 @@ fun UserProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatCard(label = "Activas", value = viewModel.activePets.toString())
-                StatCard(label = "Resueltas", value = viewModel.resolvedPets.toString())
-                StatCard(label = "Pendientes", value = viewModel.pendingPets.toString())
+                StatCard(label = "Activas", value = viewModel.getActivePetsCount().toString())
+                StatCard(label = "Resueltas", value = viewModel.getResolvedPetsCount().toString())
+                StatCard(label = "Pendientes", value = viewModel.getPendingPetsCount().toString())
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -287,7 +287,7 @@ fun UserProfileScreen(
 
             // Botón guardar cambios
             Button(
-                onClick = { viewModel.saveProfile() },
+                onClick = { viewModel.updateProfile() },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Guardar cambios")

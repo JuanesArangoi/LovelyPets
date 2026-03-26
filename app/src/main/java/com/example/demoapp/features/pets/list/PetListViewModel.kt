@@ -1,67 +1,60 @@
 package com.example.demoapp.features.pets.list
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.demoapp.data.repository.PetRepository
 import com.example.demoapp.domain.model.Pet
 import com.example.demoapp.domain.model.PetCategory
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.example.demoapp.domain.repository.PetRepository
+import com.example.demoapp.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
- * ViewModel que gestiona el estado del feed de publicaciones de mascotas.
- * Maneja la lista de mascotas, filtros por categoría y acciones como votar o eliminar.
+ * ViewModel para el feed de publicaciones de mascotas.
+ * Usa @HiltViewModel para inyectar los repositorios via Hilt.
  */
-class PetListViewModel : ViewModel() {
-
-    // Lista de mascotas filtrada (la que se muestra en pantalla)
-    private val _pets = MutableStateFlow<List<Pet>>(emptyList())
-    val pets: StateFlow<List<Pet>> = _pets.asStateFlow()
+@HiltViewModel
+class PetListViewModel @Inject constructor(
+    private val petRepository: PetRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
 
     // Categoría seleccionada para filtrar (null = todas)
-    private val _selectedCategory = MutableStateFlow<PetCategory?>(null)
-    val selectedCategory: StateFlow<PetCategory?> = _selectedCategory.asStateFlow()
-
-    // Inicializar cargando todas las mascotas verificadas
-    init {
-        loadPets()
-    }
+    var selectedCategory by mutableStateOf<PetCategory?>(null)
+        private set
 
     /**
-     * Carga las mascotas verificadas del repositorio.
-     * Si hay una categoría seleccionada, filtra por ella.
+     * Obtiene la lista de mascotas verificadas, filtradas por categoría si aplica.
      */
-    fun loadPets() {
-        val category = _selectedCategory.value
-        _pets.value = if (category != null) {
-            PetRepository.getVerifiedPetsByCategory(category)
+    fun getPets(): List<Pet> {
+        return if (selectedCategory != null) {
+            petRepository.getByCategory(selectedCategory!!)
         } else {
-            PetRepository.getVerifiedPets()
+            petRepository.getVerifiedPets()
         }
     }
 
     /**
-     * Filtra las publicaciones por categoría.
-     * Si se selecciona la misma categoría que ya estaba, se limpia el filtro.
+     * Cambia la categoría seleccionada para filtrar.
      */
-    fun filterByCategory(category: PetCategory?) {
-        _selectedCategory.value = if (_selectedCategory.value == category) null else category
-        loadPets()
+    fun onCategorySelected(category: PetCategory?) {
+        selectedCategory = category
     }
 
     /**
-     * Agrega un voto "Me interesa" a una publicación.
+     * Vota por una publicación.
      */
     fun votePet(petId: String) {
-        PetRepository.votePet(petId)
-        loadPets() // Recargar para reflejar el cambio
+        val userId = userRepository.currentUser.value?.id ?: return
+        petRepository.vote(petId, userId)
     }
 
     /**
-     * Elimina una publicación (solo el dueño puede hacerlo).
+     * Elimina una publicación (solo el dueño o moderador).
      */
     fun deletePet(petId: String) {
-        PetRepository.deletePet(petId)
-        loadPets() // Recargar para reflejar el cambio
+        petRepository.delete(petId)
     }
 }

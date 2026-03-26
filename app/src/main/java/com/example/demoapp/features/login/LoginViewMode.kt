@@ -6,13 +6,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.demoapp.core.utils.ValidatedField
-import com.example.demoapp.data.SessionManager
+import com.example.demoapp.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
  * ViewModel que gestiona el estado del formulario de inicio de sesión.
- * Maneja la validación de campos y la lógica de autenticación en memoria.
+ * Usa @HiltViewModel para inyectar el UserRepository via Hilt.
  */
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
+
+    // Exponer el usuario actual para determinar el rol después del login
+    val currentUser = userRepository.currentUser
 
     // Campo de email con validación
     val email = ValidatedField("") { value ->
@@ -32,24 +40,25 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    // Resultado del intento de login (null = no se ha intentado, true = éxito, false = error)
+    // Resultado del intento de login
     var loginResult by mutableStateOf<Boolean?>(null)
         private set
 
-    // Indica si el formulario es válido para enviar
+    // Indica si el formulario es válido
     val isFormValid: Boolean
         get() = email.isValid && password.isValid
 
     /**
      * Intenta iniciar sesión con las credenciales ingresadas.
-     * Usa el SessionManager para validar contra los usuarios en memoria.
+     * Usa el UserRepository para validar contra los usuarios en memoria.
      */
     fun login() {
-        loginResult = SessionManager.login(email.value, password.value)
+        val user = userRepository.login(email.value, password.value)
+        loginResult = user != null
     }
 
     /**
-     * Resetea el resultado del login (útil después de mostrar un mensaje de error).
+     * Resetea el resultado del login.
      */
     fun resetLoginResult() {
         loginResult = null

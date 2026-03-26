@@ -35,7 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.R
 import kotlinx.coroutines.launch
 
@@ -45,8 +45,8 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun RegisterScreen(
-    viewModel: RegisterViewModel = viewModel(),    // Se crea o se obtiene el ViewModel
-    onRegisterSuccess: () -> Unit = {}             // Navegar al feed tras registro exitoso
+    viewModel: RegisterViewModel = hiltViewModel(),
+    onRegisterSuccess: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()

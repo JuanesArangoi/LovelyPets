@@ -4,68 +4,52 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.demoapp.data.repository.PetRepository
 import com.example.demoapp.domain.model.Pet
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.example.demoapp.domain.repository.PetRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
- * ViewModel que gestiona el panel de moderación.
- * Permite ver publicaciones pendientes y verificarlas o rechazarlas.
+ * ViewModel para el panel de moderación.
+ * Gestiona la verificación y rechazo de publicaciones pendientes.
  */
-class ModeratorViewModel : ViewModel() {
+@HiltViewModel
+class ModeratorViewModel @Inject constructor(
+    private val petRepository: PetRepository
+) : ViewModel() {
 
-    // Lista de publicaciones pendientes de verificación
-    private val _pendingPets = MutableStateFlow<List<Pet>>(emptyList())
-    val pendingPets: StateFlow<List<Pet>> = _pendingPets.asStateFlow()
-
-    // Motivo de rechazo (para el diálogo)
+    // Motivo de rechazo
     var rejectionReason by mutableStateOf("")
         private set
 
-    // Inicializar cargando publicaciones pendientes
-    init {
-        loadPendingPets()
-    }
-
     /**
-     * Carga las publicaciones pendientes de verificación.
+     * Obtiene las publicaciones pendientes de verificación.
      */
-    fun loadPendingPets() {
-        _pendingPets.value = PetRepository.getPendingPets()
+    fun getPendingPets(): List<Pet> {
+        return petRepository.getPendingPets()
     }
 
     /**
-     * Verifica una publicación (la aprueba).
-     */
-    fun verifyPet(petId: String) {
-        PetRepository.verifyPet(petId)
-        loadPendingPets() // Recargar la lista
-    }
-
-    /**
-     * Rechaza una publicación con un motivo.
-     */
-    fun rejectPet(petId: String) {
-        if (rejectionReason.isNotBlank()) {
-            PetRepository.rejectPet(petId, rejectionReason)
-            rejectionReason = "" // Limpiar el motivo
-            loadPendingPets() // Recargar la lista
-        }
-    }
-
-    /**
-     * Actualiza el texto del motivo de rechazo.
+     * Actualiza el motivo de rechazo.
      */
     fun onRejectionReasonChange(reason: String) {
         rejectionReason = reason
     }
 
     /**
-     * Limpia el motivo de rechazo.
+     * Verifica una publicación (la hace visible en el feed).
      */
-    fun clearRejectionReason() {
-        rejectionReason = ""
+    fun verifyPet(petId: String) {
+        petRepository.verify(petId)
+    }
+
+    /**
+     * Rechaza una publicación con el motivo ingresado.
+     */
+    fun rejectPet(petId: String) {
+        if (rejectionReason.isNotBlank()) {
+            petRepository.reject(petId, rejectionReason)
+            rejectionReason = ""
+        }
     }
 }

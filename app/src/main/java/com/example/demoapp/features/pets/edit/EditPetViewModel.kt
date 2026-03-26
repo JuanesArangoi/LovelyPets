@@ -5,20 +5,25 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.demoapp.core.utils.ValidatedField
-import com.example.demoapp.data.repository.PetRepository
 import com.example.demoapp.domain.model.PetCategory
+import com.example.demoapp.domain.repository.PetRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
- * ViewModel que gestiona la edición de una publicación de mascota existente.
- * Carga los datos actuales y permite editarlos.
+ * ViewModel para editar una publicación existente de mascota.
+ * Pre-carga los datos de la publicación y maneja la actualización.
  */
-class EditPetViewModel : ViewModel() {
+@HiltViewModel
+class EditPetViewModel @Inject constructor(
+    private val petRepository: PetRepository
+) : ViewModel() {
 
-    // Campos validados del formulario
+    // Campos del formulario con validación
     val title = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El título es obligatorio"
-            value.trim().length < 5 -> "El título debe tener al menos 5 caracteres"
+            value.length < 5 -> "El título debe tener al menos 5 caracteres"
             else -> null
         }
     }
@@ -26,7 +31,7 @@ class EditPetViewModel : ViewModel() {
     val description = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "La descripción es obligatoria"
-            value.trim().length < 10 -> "La descripción debe tener al menos 10 caracteres"
+            value.length < 20 -> "La descripción debe tener al menos 20 caracteres"
             else -> null
         }
     }
@@ -37,8 +42,6 @@ class EditPetViewModel : ViewModel() {
             else -> null
         }
     }
-
-    val breed = ValidatedField("") { _ -> null }
 
     val size = ValidatedField("") { value ->
         when {
@@ -55,85 +58,69 @@ class EditPetViewModel : ViewModel() {
         }
     }
 
-    // Categoría seleccionada
     var selectedCategory by mutableStateOf(PetCategory.ADOPCION)
         private set
 
-    // Tiene vacunas
     var hasVaccines by mutableStateOf(false)
         private set
 
-    // ID de la mascota que se está editando
-    private var petId: String = ""
-
-    // Resultado de la edición
-    var editResult by mutableStateOf<Boolean?>(null)
+    var updateResult by mutableStateOf<Boolean?>(null)
         private set
 
-    // Indica si el formulario es válido
+    // ID de la publicación que se está editando
+    private var petId: String = ""
+
     val isFormValid: Boolean
-        get() = title.isValid
-                && description.isValid
-                && animalType.isValid
-                && size.isValid
-                && photoUrl.isValid
+        get() = title.isValid && description.isValid && animalType.isValid
+                && size.isValid && photoUrl.isValid
 
     /**
-     * Carga los datos de la mascota para editar.
+     * Carga los datos de la publicación existente en los campos del formulario.
      */
     fun loadPet(id: String) {
         petId = id
-        val pet = PetRepository.findById(id) ?: return
-
-        // Cargar los valores actuales en los campos del formulario
+        val pet = petRepository.findById(id) ?: return
         title.onChange(pet.title)
         description.onChange(pet.description)
         animalType.onChange(pet.animalType)
-        breed.onChange(pet.breed)
         size.onChange(pet.size)
         photoUrl.onChange(pet.photoUrl)
         selectedCategory = pet.category
         hasVaccines = pet.hasVaccines
     }
 
-    /**
-     * Actualiza la categoría seleccionada.
-     */
-    fun onCategoryChange(category: PetCategory) {
+    fun onCategorySelected(category: PetCategory) {
         selectedCategory = category
     }
 
-    /**
-     * Actualiza el estado de vacunas.
-     */
-    fun onVaccinesChange(value: Boolean) {
+    fun onVaccinesChanged(value: Boolean) {
         hasVaccines = value
     }
 
     /**
-     * Guarda los cambios de la publicación.
+     * Actualiza la publicación usando el PetRepository.
      */
-    fun savePet() {
-        val existingPet = PetRepository.findById(petId) ?: return
+    fun updatePet() {
+        val existingPet = petRepository.findById(petId)
+        if (existingPet == null || !isFormValid) {
+            updateResult = false
+            return
+        }
 
         val updatedPet = existingPet.copy(
             title = title.value,
             description = description.value,
             category = selectedCategory,
             animalType = animalType.value,
-            breed = breed.value,
             size = size.value,
             hasVaccines = hasVaccines,
             photoUrl = photoUrl.value
         )
 
-        editResult = PetRepository.updatePet(updatedPet)
+        updateResult = petRepository.update(updatedPet)
     }
 
-    /**
-     * Resetea el resultado de edición.
-     */
     fun resetResult() {
-        editResult = null
+        updateResult = null
     }
 }

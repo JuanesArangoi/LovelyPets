@@ -1,6 +1,5 @@
 package com.example.demoapp.features.login
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,34 +21,43 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.R
-import kotlinx.coroutines.launch
 
 /**
  * Pantalla para cambiar la contraseña.
- * El usuario ingresa su nueva contraseña y la confirma.
+ * Usa hiltViewModel() para inyectar ChangePasswordViewModel.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangePasswordScreen(
-    onNavigateToLogin: () -> Unit = {},   // Navegar al login tras cambio exitoso
-    onNavigateBack: () -> Unit = {}       // Volver atrás
+    viewModel: ChangePasswordViewModel = hiltViewModel(),
+    onNavigateToLogin: () -> Unit = {},
+    onNavigateBack: () -> Unit = {}
 ) {
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
+
+    // Observar resultado
+    LaunchedEffect(viewModel.changeResult) {
+        viewModel.changeResult?.let { success ->
+            if (success) {
+                snackbarHostState.showSnackbar("¡Contraseña actualizada exitosamente!")
+                viewModel.resetResult()
+                onNavigateToLogin()
+            } else {
+                snackbarHostState.showSnackbar("Las contraseñas no coinciden o son muy cortas")
+                viewModel.resetResult()
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -78,7 +86,6 @@ fun ChangePasswordScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 16.dp, alignment = CenterVertically)
         ) {
-            // Logo
             Image(
                 painter = painterResource(R.mipmap.mascota),
                 contentDescription = "Logo de la Aplicación"
@@ -89,41 +96,30 @@ fun ChangePasswordScreen(
                 style = MaterialTheme.typography.headlineMedium
             )
 
-            // Campo de nueva contraseña
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = newPassword,
-                onValueChange = { newPassword = it },
+                value = viewModel.newPassword.value,
+                onValueChange = { viewModel.newPassword.onChange(it) },
                 label = { Text("Nueva contraseña") },
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = PasswordVisualTransformation(),
+                isError = viewModel.newPassword.error != null,
+                supportingText = viewModel.newPassword.error?.let { error -> { Text(text = error) } }
             )
 
-            // Campo de confirmar contraseña
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                value = viewModel.confirmPassword.value,
+                onValueChange = { viewModel.confirmPassword.onChange(it) },
                 label = { Text("Confirmar contraseña") },
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = PasswordVisualTransformation(),
+                isError = viewModel.confirmPassword.error != null,
+                supportingText = viewModel.confirmPassword.error?.let { error -> { Text(text = error) } }
             )
 
-            // Botón de actualizar contraseña
             Button(
-                onClick = {
-                    if (newPassword == confirmPassword && newPassword.length >= 6) {
-                        Log.d("ChangePassword", "Contraseña actualizada")
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar("¡Contraseña actualizada exitosamente!")
-                        }
-                        onNavigateToLogin()
-                    } else {
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar("Las contraseñas no coinciden o son muy cortas")
-                        }
-                    }
-                },
+                onClick = { viewModel.changePassword() },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = newPassword.isNotEmpty() && confirmPassword.isNotEmpty()
+                enabled = viewModel.isFormValid
             ) {
                 Text("Actualizar Contraseña")
             }

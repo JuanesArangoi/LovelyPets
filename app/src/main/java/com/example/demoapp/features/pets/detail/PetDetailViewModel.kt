@@ -4,80 +4,91 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.demoapp.data.SessionManager
-import com.example.demoapp.data.repository.PetRepository
 import com.example.demoapp.domain.model.Comment
 import com.example.demoapp.domain.model.Pet
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.example.demoapp.domain.repository.CommentRepository
+import com.example.demoapp.domain.repository.PetRepository
+import com.example.demoapp.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
+import javax.inject.Inject
 
 /**
- * ViewModel que gestiona el estado del detalle de una publicación de mascota.
- * Carga la mascota por ID, permite agregar comentarios y votar.
+ * ViewModel para el detalle de una publicación de mascota.
+ * Maneja la carga de datos, comentarios, votación y resolución.
  */
-class PetDetailViewModel : ViewModel() {
+@HiltViewModel
+class PetDetailViewModel @Inject constructor(
+    private val petRepository: PetRepository,
+    private val commentRepository: CommentRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
 
-    // Publicación de mascota actual
-    private val _pet = MutableStateFlow<Pet?>(null)
-    val pet: StateFlow<Pet?> = _pet.asStateFlow()
+    // Mascota cargada
+    var pet by mutableStateOf<Pet?>(null)
+        private set
 
     // Texto del nuevo comentario
-    var newCommentText by mutableStateOf("")
+    var commentText by mutableStateOf("")
         private set
 
     /**
-     * Carga una mascota por su ID desde el repositorio.
+     * Carga los datos de una mascota por su ID.
      */
     fun loadPet(petId: String) {
-        _pet.value = PetRepository.findById(petId)
+        pet = petRepository.findById(petId)
+    }
+
+    /**
+     * Obtiene los comentarios de la publicación actual.
+     */
+    fun getComments(): List<Comment> {
+        val petId = pet?.id ?: return emptyList()
+        return commentRepository.getByPetId(petId)
     }
 
     /**
      * Actualiza el texto del nuevo comentario.
      */
     fun onCommentTextChange(text: String) {
-        newCommentText = text
+        commentText = text
     }
 
     /**
-     * Agrega un nuevo comentario a la publicación actual.
+     * Agrega un nuevo comentario a la publicación.
      */
     fun addComment() {
-        val currentUser = SessionManager.currentUser ?: return
-        val petId = _pet.value?.id ?: return
-
-        if (newCommentText.isBlank()) return
+        val currentPet = pet ?: return
+        val currentUser = userRepository.currentUser.value ?: return
+        if (commentText.isBlank()) return
 
         val comment = Comment(
             id = UUID.randomUUID().toString(),
-            petId = petId,
+            petId = currentPet.id,
             authorId = currentUser.id,
             authorName = currentUser.name,
-            text = newCommentText
+            text = commentText
         )
-
-        PetRepository.addComment(petId, comment)
-        newCommentText = "" // Limpiar campo de texto
-        loadPet(petId) // Recargar para mostrar el nuevo comentario
+        commentRepository.add(comment)
+        commentText = ""
     }
 
     /**
-     * Agrega un voto "Me interesa" a la publicación.
+     * Vota por la publicación.
      */
     fun votePet() {
-        val petId = _pet.value?.id ?: return
-        PetRepository.votePet(petId)
-        loadPet(petId) // Recargar para reflejar el cambio
+        val petId = pet?.id ?: return
+        val userId = userRepository.currentUser.value?.id ?: return
+        petRepository.vote(petId, userId)
+        loadPet(petId) // Recargar para actualizar votos
     }
 
     /**
-     * Marca la publicación como resuelta/finalizada.
+     * Marca la publicación como resuelta.
      */
     fun resolvePet() {
-        val petId = _pet.value?.id ?: return
-        PetRepository.resolvePet(petId)
-        loadPet(petId) // Recargar para reflejar el cambio
+        val petId = pet?.id ?: return
+        petRepository.resolve(petId)
+        loadPet(petId) // Recargar para actualizar estado
     }
 }

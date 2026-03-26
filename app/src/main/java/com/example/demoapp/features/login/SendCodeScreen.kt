@@ -21,30 +21,36 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.R
 
 /**
  * Pantalla para enviar código de recuperación de contraseña.
- * El usuario ingresa su email y se le envía un código de verificación.
+ * Usa hiltViewModel() para inyectar SendCodeViewModel.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SendCodeScreen(
-    onNavigateToVerifyCode: () -> Unit = {},  // Navegar a verificar código
-    onNavigateBack: () -> Unit = {}           // Volver atrás
+    viewModel: SendCodeViewModel = hiltViewModel(),
+    onNavigateToVerifyCode: () -> Unit = {},
+    onNavigateBack: () -> Unit = {}
 ) {
-    var email by remember { mutableStateOf("") }
-    var errorEmail by remember { mutableStateOf("") }
+    // Observar resultado del envío
+    LaunchedEffect(viewModel.sendResult) {
+        viewModel.sendResult?.let { success ->
+            if (success) {
+                viewModel.resetResult()
+                onNavigateToVerifyCode()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -72,7 +78,6 @@ fun SendCodeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 16.dp, alignment = CenterVertically)
         ) {
-            // Logo
             Image(
                 painter = painterResource(R.mipmap.mascota),
                 contentDescription = "Logo de la Aplicación"
@@ -89,7 +94,6 @@ fun SendCodeScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // Campo de email
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Email") },
@@ -99,29 +103,17 @@ fun SendCodeScreen(
                         contentDescription = "Icono de email"
                     )
                 },
-                value = email,
-                isError = errorEmail.isNotEmpty(),
-                supportingText = {
-                    if (errorEmail.isNotEmpty()) {
-                        Text(text = errorEmail)
-                    }
-                },
-                onValueChange = {
-                    if (!android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches()) {
-                        errorEmail = "El email no es correcto"
-                    } else {
-                        errorEmail = ""
-                    }
-                    email = it
-                },
+                value = viewModel.email.value,
+                isError = viewModel.email.error != null,
+                supportingText = viewModel.email.error?.let { error -> { Text(text = error) } },
+                onValueChange = { viewModel.email.onChange(it) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
 
-            // Botón de enviar código
             Button(
-                onClick = { onNavigateToVerifyCode() },
+                onClick = { viewModel.sendCode() },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = email.isNotEmpty() && errorEmail.isEmpty()
+                enabled = viewModel.email.isValid
             ) {
                 Text("Enviar código")
             }

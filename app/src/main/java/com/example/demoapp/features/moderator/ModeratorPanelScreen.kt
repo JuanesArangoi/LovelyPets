@@ -45,7 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.demoapp.domain.model.Pet
@@ -57,10 +57,11 @@ import com.example.demoapp.domain.model.Pet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorPanelScreen(
-    viewModel: ModeratorViewModel = viewModel(),
-    onNavigateBack: () -> Unit      // Función para volver atrás
+    viewModel: ModeratorViewModel = hiltViewModel(),
+    paddingValues: PaddingValues = PaddingValues(),
+    onNavigateBack: () -> Unit
 ) {
-    val pendingPets by viewModel.pendingPets.collectAsState()
+    val pendingPets = viewModel.getPendingPets()
 
     // Estado para el diálogo de rechazo
     var showRejectDialog by remember { mutableStateOf(false) }
@@ -72,7 +73,7 @@ fun ModeratorPanelScreen(
             onDismissRequest = {
                 showRejectDialog = false
                 petToReject = null
-                viewModel.clearRejectionReason()
+                viewModel.onRejectionReasonChange("")
             },
             title = { Text("Rechazar publicación") },
             text = {

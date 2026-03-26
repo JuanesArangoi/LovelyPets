@@ -6,17 +6,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.demoapp.core.utils.ValidatedField
-import com.example.demoapp.data.SessionManager
 import com.example.demoapp.domain.model.User
+import com.example.demoapp.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
+import javax.inject.Inject
 
 /**
  * ViewModel que gestiona el formulario de registro de nuevo usuario.
- * Valida los campos y registra al usuario en SessionManager.
+ * Usa @HiltViewModel para inyectar el UserRepository via Hilt.
  */
-class RegisterViewModel : ViewModel() {
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
 
-    // Campo: Nombre completo
     val fullName = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El nombre completo es obligatorio"
@@ -26,7 +30,6 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
-    // Campo: Email
     val email = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El email es obligatorio"
@@ -35,7 +38,6 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
-    // Campo: Contraseña
     val password = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "La contraseña es obligatoria"
@@ -44,7 +46,6 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
-    // Campo: Confirmar contraseña
     val confirmPassword = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "Confirma tu contraseña"
@@ -53,7 +54,6 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
-    // Campo: Teléfono
     val phone = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El teléfono es obligatorio"
@@ -63,7 +63,6 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
-    // Campo: Ubicación (ciudad)
     val location = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "La ciudad es obligatoria"
@@ -72,11 +71,9 @@ class RegisterViewModel : ViewModel() {
         }
     }
 
-    // Resultado del registro (null = no intentado, true = éxito, false = error)
     var registerResult by mutableStateOf<Boolean?>(null)
         private set
 
-    // Indica si el formulario es válido
     val isFormValid: Boolean
         get() = fullName.isValid
                 && email.isValid
@@ -86,7 +83,7 @@ class RegisterViewModel : ViewModel() {
                 && location.isValid
 
     /**
-     * Registra un nuevo usuario usando SessionManager.
+     * Registra un nuevo usuario usando el UserRepository.
      */
     fun register() {
         val newUser = User(
@@ -97,20 +94,13 @@ class RegisterViewModel : ViewModel() {
             phoneNumber = phone.value,
             city = location.value
         )
-
-        registerResult = SessionManager.register(newUser)
+        registerResult = userRepository.register(newUser)
     }
 
-    /**
-     * Resetea el resultado del registro.
-     */
     fun resetRegisterResult() {
         registerResult = null
     }
 
-    /**
-     * Resetea todos los campos del formulario.
-     */
     fun resetForm() {
         fullName.reset()
         email.reset()

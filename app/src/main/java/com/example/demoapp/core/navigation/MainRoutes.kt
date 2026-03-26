@@ -3,56 +3,33 @@ package com.example.demoapp.core.navigation
 import kotlinx.serialization.Serializable
 
 /**
- * Define todas las rutas de navegación de la aplicación.
- * Usa sealed class para un conjunto cerrado de rutas con serialización.
+ * Rutas principales de navegación de la aplicación.
+ * Después de login, se usa UserDashboard o AdminDashboard que contienen
+ * su propia navegación interna con BottomNavigationBar.
  */
 sealed class MainRoutes {
 
-    // Pantalla de bienvenida (inicio de la aplicación)
     @Serializable
-    data object Home : MainRoutes()
+    data object Home : MainRoutes()          // Pantalla de bienvenida
 
-    // Pantalla de inicio de sesión
     @Serializable
-    data object Login : MainRoutes()
+    data object Login : MainRoutes()         // Inicio de sesión
 
-    // Pantalla de registro de nuevo usuario
     @Serializable
-    data object Register : MainRoutes()
+    data object Register : MainRoutes()      // Registro de usuario
 
-    // Pantalla para enviar código de recuperación de contraseña
     @Serializable
-    data object SendCode : MainRoutes()
+    data object SendCode : MainRoutes()      // Enviar código de recuperación
 
-    // Pantalla para verificar el código de recuperación
     @Serializable
-    data object VerifyCode : MainRoutes()
+    data object VerifyCode : MainRoutes()    // Verificar código
 
-    // Pantalla para cambiar la contraseña
     @Serializable
-    data object ChangePassword : MainRoutes()
+    data object ChangePassword : MainRoutes() // Cambiar contraseña
 
-    // Feed principal de publicaciones de mascotas
     @Serializable
-    data object PetList : MainRoutes()
+    data object UserDashboard : MainRoutes()  // Dashboard del usuario (con BottomNav)
 
-    // Detalle de una publicación de mascota (recibe el ID como parámetro)
     @Serializable
-    data class PetDetail(val petId: String) : MainRoutes()
-
-    // Pantalla para crear una nueva publicación de mascota
-    @Serializable
-    data object CreatePet : MainRoutes()
-
-    // Pantalla para editar una publicación existente (recibe el ID como parámetro)
-    @Serializable
-    data class EditPet(val petId: String) : MainRoutes()
-
-    // Pantalla de perfil del usuario
-    @Serializable
-    data object UserProfile : MainRoutes()
-
-    // Panel del moderador
-    @Serializable
-    data object ModeratorPanel : MainRoutes()
+    data object AdminDashboard : MainRoutes() // Dashboard del moderador (con BottomNav)
 }

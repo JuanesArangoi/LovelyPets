@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.devtools.ksp)
 }
 
 android {
@@ -56,6 +58,11 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
+    // --- Hilt Core ---
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    // --- Hilt + Compose Navigation ---
+    implementation(libs.androidx.hilt.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

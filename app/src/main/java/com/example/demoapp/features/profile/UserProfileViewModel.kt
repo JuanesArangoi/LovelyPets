@@ -5,22 +5,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.demoapp.core.utils.ValidatedField
-import com.example.demoapp.data.SessionManager
-import com.example.demoapp.data.repository.PetRepository
-import com.example.demoapp.domain.model.PetStatus
 import com.example.demoapp.domain.model.User
+import com.example.demoapp.domain.model.PetStatus
+import com.example.demoapp.domain.repository.PetRepository
+import com.example.demoapp.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
- * ViewModel que gestiona el perfil del usuario.
- * Muestra datos personales, estadísticas y permite editar el perfil.
+ * ViewModel para el perfil del usuario.
+ * Maneja la edición de datos, estadísticas y eliminación de cuenta.
  */
-class UserProfileViewModel : ViewModel() {
+@HiltViewModel
+class UserProfileViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val petRepository: PetRepository
+) : ViewModel() {
 
     // Campos editables del perfil
     val name = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El nombre es obligatorio"
-            value.trim().length < 3 -> "El nombre debe tener al menos 3 caracteres"
+            value.trim().length < 3 -> "Ingresa un nombre válido"
             else -> null
         }
     }
@@ -28,7 +34,7 @@ class UserProfileViewModel : ViewModel() {
     val phone = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El teléfono es obligatorio"
-            value.length < 7 -> "El teléfono debe tener al menos 7 dígitos"
+            value.length < 7 -> "Ingresa un teléfono válido"
             else -> null
         }
     }
@@ -40,77 +46,79 @@ class UserProfileViewModel : ViewModel() {
         }
     }
 
-    val address = ValidatedField("") { _ -> null }
-
-    // Estadísticas del usuario
-    var activePets by mutableStateOf(0)
-        private set
-    var resolvedPets by mutableStateOf(0)
-        private set
-    var pendingPets by mutableStateOf(0)
+    // Resultado de las operaciones
+    var updateResult by mutableStateOf<Boolean?>(null)
         private set
 
-    // Resultado de la edición
-    var editResult by mutableStateOf<Boolean?>(null)
-        private set
-
-    // Resultado de eliminación de cuenta
     var deleteResult by mutableStateOf<Boolean?>(null)
         private set
 
     /**
-     * Carga los datos del usuario actual.
+     * Obtiene el usuario actual desde el repositorio.
      */
-    fun loadProfile() {
-        val user = SessionManager.currentUser ?: return
-
-        // Cargar datos en los campos editables
-        name.onChange(user.name)
-        phone.onChange(user.phoneNumber)
-        city.onChange(user.city)
-        address.onChange(user.address)
-
-        // Calcular estadísticas
-        val userPets = PetRepository.getPetsByOwner(user.id)
-        activePets = userPets.count { it.status == PetStatus.VERIFICADO }
-        resolvedPets = userPets.count { it.status == PetStatus.RESUELTO }
-        pendingPets = userPets.count { it.status == PetStatus.PENDIENTE }
+    fun getCurrentUser(): User? {
+        return userRepository.currentUser.value
     }
 
     /**
-     * Guarda los cambios del perfil.
+     * Carga los datos del usuario actual en los campos editables.
      */
-    fun saveProfile() {
-        val currentUser = SessionManager.currentUser ?: return
+    fun loadUserData() {
+        val user = userRepository.currentUser.value ?: return
+        name.onChange(user.name)
+        phone.onChange(user.phoneNumber)
+        city.onChange(user.city)
+    }
 
+    /**
+     * Obtiene el número de mascotas activas del usuario.
+     */
+    fun getActivePetsCount(): Int {
+        val userId = userRepository.currentUser.value?.id ?: return 0
+        return petRepository.getByOwner(userId).count { it.status == PetStatus.VERIFICADO }
+    }
+
+    /**
+     * Obtiene el número de mascotas resueltas del usuario.
+     */
+    fun getResolvedPetsCount(): Int {
+        val userId = userRepository.currentUser.value?.id ?: return 0
+        return petRepository.getByOwner(userId).count { it.status == PetStatus.RESUELTO }
+    }
+
+    /**
+     * Obtiene el número de mascotas pendientes del usuario.
+     */
+    fun getPendingPetsCount(): Int {
+        val userId = userRepository.currentUser.value?.id ?: return 0
+        return petRepository.getByOwner(userId).count { it.status == PetStatus.PENDIENTE }
+    }
+
+    /**
+     * Actualiza los datos del perfil usando el UserRepository.
+     */
+    fun updateProfile() {
+        val currentUser = userRepository.currentUser.value ?: return
         val updatedUser = currentUser.copy(
             name = name.value,
             phoneNumber = phone.value,
-            city = city.value,
-            address = address.value
+            city = city.value
         )
-
-        SessionManager.updateCurrentUser(updatedUser)
-        editResult = true
+        updateResult = userRepository.updateUser(updatedUser)
     }
 
     /**
      * Elimina la cuenta del usuario actual.
      */
     fun deleteAccount() {
-        deleteResult = SessionManager.deleteCurrentUser()
+        val userId = userRepository.currentUser.value?.id ?: return
+        deleteResult = userRepository.deleteUser(userId)
     }
 
-    /**
-     * Resetea el resultado de edición.
-     */
-    fun resetEditResult() {
-        editResult = null
+    fun resetUpdateResult() {
+        updateResult = null
     }
 
-    /**
-     * Resetea el resultado de eliminación.
-     */
     fun resetDeleteResult() {
         deleteResult = null
     }

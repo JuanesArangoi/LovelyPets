@@ -40,7 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.domain.model.PetCategory
 
 /**
@@ -50,9 +50,10 @@ import com.example.demoapp.domain.model.PetCategory
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditPetScreen(
-    petId: String,                              // ID de la mascota a editar
-    viewModel: EditPetViewModel = viewModel(),
-    onNavigateBack: () -> Unit                  // Función para volver atrás
+    petId: String,
+    viewModel: EditPetViewModel = hiltViewModel(),
+    paddingValues: PaddingValues = PaddingValues(),
+    onNavigateBack: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -62,8 +63,8 @@ fun EditPetScreen(
     }
 
     // Efecto para mostrar resultado de la edición
-    LaunchedEffect(viewModel.editResult) {
-        viewModel.editResult?.let { success ->
+    LaunchedEffect(viewModel.updateResult) {
+        viewModel.updateResult?.let { success ->
             if (success) {
                 snackbarHostState.showSnackbar("¡Publicación actualizada exitosamente!")
                 onNavigateBack()
@@ -151,7 +152,7 @@ fun EditPetScreen(
                         DropdownMenuItem(
                             text = { Text(category.label) },
                             onClick = {
-                                viewModel.onCategoryChange(category)
+                                viewModel.onCategorySelected(category)
                                 expandedCategory = false
                             }
                         )
@@ -220,7 +221,7 @@ fun EditPetScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(
                     checked = viewModel.hasVaccines,
-                    onCheckedChange = { viewModel.onVaccinesChange(it) }
+                    onCheckedChange = { viewModel.onVaccinesChanged(it) }
                 )
                 Text(
                     text = "¿Tiene vacunas al día?",
@@ -245,7 +246,7 @@ fun EditPetScreen(
 
             // Botón de guardar cambios
             Button(
-                onClick = { viewModel.savePet() },
+                onClick = { viewModel.updatePet() },
                 enabled = viewModel.isFormValid,
                 modifier = Modifier.fillMaxWidth()
             ) {
