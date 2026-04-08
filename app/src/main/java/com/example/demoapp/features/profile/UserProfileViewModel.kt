@@ -31,6 +31,8 @@ class UserProfileViewModel @Inject constructor(
         }
     }
 
+    val address = ValidatedField("") { _ -> null } // Dirección es opcional
+
     val phone = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El teléfono es obligatorio"
@@ -68,6 +70,7 @@ class UserProfileViewModel @Inject constructor(
         name.onChange(user.name)
         phone.onChange(user.phoneNumber)
         city.onChange(user.city)
+        address.onChange(user.address)
     }
 
     /**
@@ -102,7 +105,8 @@ class UserProfileViewModel @Inject constructor(
         val updatedUser = currentUser.copy(
             name = name.value,
             phoneNumber = phone.value,
-            city = city.value
+            city = city.value,
+            address = address.value
         )
         updateResult = userRepository.updateUser(updatedUser)
     }

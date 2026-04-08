@@ -5,7 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.ShieldMoon
+import androidx.compose.material.icons.outlined.ShieldMoon
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -22,7 +22,6 @@ import com.example.demoapp.features.dashboard.navigation.DashboardRoutes
 
 /**
  * Barra de navegación inferior reutilizable para el dashboard.
- * Recibe una lista de destinos para ser usada tanto por usuarios como moderadores.
  */
 @Composable
 fun BottomNavigationBar(
@@ -30,11 +29,9 @@ fun BottomNavigationBar(
     destinations: List<Destination>,
     titleTopBar: (String) -> Unit
 ) {
-    // Obtener la entrada actual de la pila de navegación
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    // Actualizar el título de la barra superior según la pantalla actual
     LaunchedEffect(currentDestination) {
         val destination = destinations.find {
             it.route::class.qualifiedName == currentDestination?.route
@@ -44,7 +41,6 @@ fun BottomNavigationBar(
         }
     }
 
-    // Crear la barra de navegación inferior
     NavigationBar(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -74,29 +70,20 @@ fun BottomNavigationBar(
     }
 }
 
-/**
- * Definición de un item de navegación para la barra inferior.
- */
 data class Destination(
     val route: DashboardRoutes,
     val label: String,
     val icon: ImageVector
 )
 
-/**
- * Destinos para la barra de navegación del usuario normal.
- */
 val userDestinations = listOf(
     Destination(DashboardRoutes.PetFeed, "Inicio", Icons.Default.Home),
     Destination(DashboardRoutes.CreatePet, "Crear", Icons.Default.Add),
     Destination(DashboardRoutes.Profile, "Perfil", Icons.Default.AccountCircle)
 )
 
-/**
- * Destinos para la barra de navegación del moderador.
- */
 val adminDestinations = listOf(
     Destination(DashboardRoutes.PetFeed, "Inicio", Icons.Default.Home),
-    Destination(DashboardRoutes.ModeratorPanel, "Moderar", Icons.Default.ShieldMoon),
+    Destination(DashboardRoutes.ModeratorPanel, "Moderar", Icons.Outlined.ShieldMoon),
     Destination(DashboardRoutes.Profile, "Perfil", Icons.Default.AccountCircle)
 )

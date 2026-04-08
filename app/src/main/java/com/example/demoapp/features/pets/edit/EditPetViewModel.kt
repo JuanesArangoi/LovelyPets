@@ -28,6 +28,8 @@ class EditPetViewModel @Inject constructor(
         }
     }
 
+    val breed = ValidatedField("") { _ -> null } // Raza es opcional
+
     val description = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "La descripción es obligatoria"
@@ -83,6 +85,7 @@ class EditPetViewModel @Inject constructor(
         title.onChange(pet.title)
         description.onChange(pet.description)
         animalType.onChange(pet.animalType)
+        breed.onChange(pet.breed)
         size.onChange(pet.size)
         photoUrl.onChange(pet.photoUrl)
         selectedCategory = pet.category
@@ -112,6 +115,7 @@ class EditPetViewModel @Inject constructor(
             description = description.value,
             category = selectedCategory,
             animalType = animalType.value,
+            breed = breed.value,
             size = size.value,
             hasVaccines = hasVaccines,
             photoUrl = photoUrl.value
