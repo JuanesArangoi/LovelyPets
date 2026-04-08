@@ -25,13 +25,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -74,18 +75,29 @@ fun PetDetailScreen(
     val pet by viewModel.pet.collectAsState()
     val currentUser = SessionManager.currentUser
 
+    // Colores personalizados
+    val customGreenDark = Color(0xFF003913)
+    val customGreenLight = Color(0xFFAFD8C0)
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalle de Publicación") },
+                title = { 
+                    Text(
+                        text = "Detalle de Publicación",
+                        fontWeight = FontWeight.Bold,
+                        color = customGreenDark
+                    ) 
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = customGreenLight
                 ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = "Volver",
+                            tint = customGreenDark
                         )
                     }
                 },
@@ -95,7 +107,8 @@ fun PetDetailScreen(
                         IconButton(onClick = { onNavigateToEdit(petId) }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
-                                contentDescription = "Editar publicación"
+                                contentDescription = "Editar publicación",
+                                tint = customGreenDark
                             )
                         }
                     }
@@ -104,7 +117,6 @@ fun PetDetailScreen(
         }
     ) { innerPadding ->
         if (pet == null) {
-            // Mostrar mensaje si no se encontró la publicación
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -152,16 +164,18 @@ fun PetDetailScreen(
                                 text = petData.title,
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
+                                color = customGreenDark,
                                 modifier = Modifier.weight(1f)
                             )
                             Text(
                                 text = petData.status.label,
                                 style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
                                 color = when (petData.status) {
-                                    PetStatus.VERIFICADO -> MaterialTheme.colorScheme.primary
-                                    PetStatus.PENDIENTE -> MaterialTheme.colorScheme.tertiary
-                                    PetStatus.RECHAZADO -> MaterialTheme.colorScheme.error
-                                    PetStatus.RESUELTO -> MaterialTheme.colorScheme.secondary
+                                    PetStatus.VERIFICADO -> customGreenDark
+                                    PetStatus.PENDIENTE -> Color(0xFF6200EE)
+                                    PetStatus.RECHAZADO -> Color.Red
+                                    PetStatus.RESUELTO -> Color.Gray
                                 }
                             )
                         }
@@ -172,7 +186,8 @@ fun PetDetailScreen(
                         Text(
                             text = "${petData.category.label} • ${petData.animalType}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            fontWeight = FontWeight.Medium,
+                            color = customGreenDark.copy(alpha = 0.8f)
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
@@ -197,7 +212,8 @@ fun PetDetailScreen(
                         Text(
                             text = "Descripción",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = customGreenDark
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
@@ -212,7 +228,7 @@ fun PetDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = "Ubicación",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = customGreenDark,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -238,10 +254,14 @@ fun PetDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            // Botón "Me interesa adoptar" / "Me interesa"
+                            // Botón "Me interesa"
                             Button(
                                 onClick = { viewModel.votePet() },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = customGreenLight,
+                                    contentColor = customGreenDark
+                                )
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Favorite,
@@ -249,7 +269,7 @@ fun PetDetailScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Me interesa (${petData.votes})")
+                                Text("Me interesa (${petData.votes})", fontWeight = FontWeight.Bold)
                             }
 
                             // Botón para marcar como resuelto (solo el dueño)
@@ -259,7 +279,8 @@ fun PetDetailScreen(
                                 Button(
                                     onClick = { viewModel.resolvePet() },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.secondary
+                                        containerColor = Color.LightGray,
+                                        contentColor = Color.DarkGray
                                     )
                                 ) {
                                     Icon(
@@ -268,14 +289,14 @@ fun PetDetailScreen(
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Resuelto")
+                                    Text("Resuelto", fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
                     }
                 }
 
-                // Separador antes de comentarios
+                // Separador
                 item {
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 }
@@ -286,13 +307,14 @@ fun PetDetailScreen(
                         text = "Comentarios (${petData.comments.size})",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        color = customGreenDark,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
 
                 // Lista de comentarios
                 items(petData.comments) { comment ->
-                    CommentItem(comment = comment)
+                    CommentItem(comment = comment, highlightColor = customGreenDark)
                 }
 
                 // Campo para agregar nuevo comentario
@@ -308,7 +330,12 @@ fun PetDetailScreen(
                             onValueChange = { viewModel.onCommentTextChange(it) },
                             label = { Text("Escribe un comentario...") },
                             modifier = Modifier.weight(1f),
-                            maxLines = 3
+                            maxLines = 3,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = customGreenDark,
+                                focusedLabelColor = customGreenDark,
+                                cursorColor = customGreenDark
+                            )
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
@@ -319,14 +346,12 @@ fun PetDetailScreen(
                                 imageVector = Icons.AutoMirrored.Filled.Send,
                                 contentDescription = "Enviar comentario",
                                 tint = if (viewModel.newCommentText.isNotBlank())
-                                    MaterialTheme.colorScheme.primary
+                                    customGreenDark
                                 else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                    Color.Gray
                             )
                         }
                     }
-
-                    // Espacio al final para que el contenido no quede oculto
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -334,17 +359,14 @@ fun PetDetailScreen(
     }
 }
 
-/**
- * Composable que muestra un comentario individual.
- */
 @Composable
-fun CommentItem(comment: Comment) {
+fun CommentItem(comment: Comment, highlightColor: Color) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = Color(0xFFF1F1F1)
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -355,7 +377,7 @@ fun CommentItem(comment: Comment) {
                 text = comment.authorName,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = highlightColor
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(

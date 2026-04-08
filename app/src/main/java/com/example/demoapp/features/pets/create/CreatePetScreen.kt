@@ -15,7 +15,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -24,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -39,6 +42,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -58,6 +63,20 @@ fun CreatePetScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
+    // Colores personalizados
+    val customGreenDark = Color(0xFF003913)
+    val customGreenLight = Color(0xFFAFD8C0)
+
+    // Estilo común para los campos de texto
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = customGreenDark,
+        focusedLabelColor = customGreenDark,
+        focusedLeadingIconColor = customGreenDark,
+        cursorColor = customGreenDark,
+        unfocusedContainerColor = Color.White,
+        focusedContainerColor = Color.White
+    )
+
     // Efecto para mostrar mensaje después de la creación
     LaunchedEffect(viewModel.createResult) {
         viewModel.createResult?.let { success ->
@@ -76,15 +95,22 @@ fun CreatePetScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Nueva Publicación") },
+                title = { 
+                    Text(
+                        text = "Nueva Publicación",
+                        fontWeight = FontWeight.Bold,
+                        color = customGreenDark
+                    ) 
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = customGreenLight
                 ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = "Volver",
+                            tint = customGreenDark
                         )
                     }
                 }
@@ -108,7 +134,8 @@ fun CreatePetScreen(
                 isError = viewModel.title.error != null,
                 supportingText = viewModel.title.error?.let { error ->
                     { Text(text = error) }
-                }
+                },
+                colors = textFieldColors
             )
 
             // Campo: Descripción
@@ -122,7 +149,8 @@ fun CreatePetScreen(
                 isError = viewModel.description.error != null,
                 supportingText = viewModel.description.error?.let { error ->
                     { Text(text = error) }
-                }
+                },
+                colors = textFieldColors
             )
 
             // Dropdown: Categoría
@@ -139,7 +167,8 @@ fun CreatePetScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Categoría") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) }
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) },
+                    colors = textFieldColors
                 )
                 ExposedDropdownMenu(
                     expanded = expandedCategory,
@@ -166,7 +195,8 @@ fun CreatePetScreen(
                 isError = viewModel.animalType.error != null,
                 supportingText = viewModel.animalType.error?.let { error ->
                     { Text(text = error) }
-                }
+                },
+                colors = textFieldColors
             )
 
             // Campo: Raza
@@ -174,7 +204,8 @@ fun CreatePetScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.breed.value,
                 onValueChange = { viewModel.breed.onChange(it) },
-                label = { Text("Raza aproximada (opcional)") }
+                label = { Text("Raza aproximada (opcional)") },
+                colors = textFieldColors
             )
 
             // Dropdown: Tamaño
@@ -196,7 +227,8 @@ fun CreatePetScreen(
                     supportingText = viewModel.size.error?.let { error ->
                         { Text(text = error) }
                     },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSize) }
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSize) },
+                    colors = textFieldColors
                 )
                 ExposedDropdownMenu(
                     expanded = expandedSize,
@@ -220,11 +252,16 @@ fun CreatePetScreen(
             ) {
                 Checkbox(
                     checked = viewModel.hasVaccines,
-                    onCheckedChange = { viewModel.onVaccinesChange(it) }
+                    onCheckedChange = { viewModel.onVaccinesChange(it) },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = customGreenDark,
+                        uncheckedColor = customGreenDark.copy(alpha = 0.6f)
+                    )
                 )
                 Text(
                     text = "¿Tiene vacunas al día?",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = customGreenDark
                 )
             }
 
@@ -238,7 +275,8 @@ fun CreatePetScreen(
                 supportingText = viewModel.photoUrl.error?.let { error ->
                     { Text(text = error) }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                colors = textFieldColors
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -247,7 +285,13 @@ fun CreatePetScreen(
             Button(
                 onClick = { viewModel.createPet() },
                 enabled = viewModel.isFormValid,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = customGreenLight,
+                    contentColor = customGreenDark,
+                    disabledContainerColor = customGreenLight.copy(alpha = 0.5f),
+                    disabledContentColor = customGreenDark.copy(alpha = 0.5f)
+                )
             ) {
                 Icon(
                     imageVector = Icons.Default.Create,
@@ -255,7 +299,8 @@ fun CreatePetScreen(
                 )
                 Text(
                     text = "  Publicar mascota",
-                    modifier = Modifier.padding(start = 4.dp)
+                    modifier = Modifier.padding(start = 4.dp),
+                    fontWeight = FontWeight.Bold
                 )
             }
 
