@@ -34,6 +34,8 @@ class UserProfileViewModel @Inject constructor(
         }
     }
 
+    val address = ValidatedField("") { _ -> null } // Dirección es opcional
+
     val phone = ValidatedField("") { value ->
         when {
             value.isEmpty()  -> resources.getString(R.string.error_phone_empty)
@@ -62,6 +64,7 @@ class UserProfileViewModel @Inject constructor(
         name.onChange(user.name)
         phone.onChange(user.phoneNumber)
         city.onChange(user.city)
+        address.onChange(user.address)
     }
 
     fun getActivePetsCount(): Int {
@@ -84,7 +87,8 @@ class UserProfileViewModel @Inject constructor(
         val updatedUser = currentUser.copy(
             name        = name.value,
             phoneNumber = phone.value,
-            city        = city.value
+            city        = city.value,
+            address     = address.value
         )
         updateResult = userRepository.updateUser(updatedUser)
     }

@@ -52,4 +52,11 @@ class ModeratorViewModel @Inject constructor(
             rejectionReason = ""
         }
     }
+
+    /**
+     * Limpia el motivo de rechazo.
+     */
+    fun clearRejectionReason() {
+        rejectionReason = ""
+    }
 }

@@ -6,7 +6,7 @@ package com.example.demoapp.domain.model
  * disponible para adopción, perdida, encontrada, etc.
  */
 data class Pet(
-    val id: String,                                   // Identificador único de la publicación
+    val id: String = "",                                   // Identificador único de la publicación
     val title: String,                                // Título de la publicación
     val description: String,                          // Descripción detallada
     val category: PetCategory,                        // Categoría (Adopción, Perdidos, etc.)

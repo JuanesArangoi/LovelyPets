@@ -97,12 +97,16 @@ class CreatePetViewModel @Inject constructor(
             return
         }
 
+        // Se pasa explícitamente el id como vacío y breed si es necesario 
+        // para evitar errores de parámetros faltantes en algunas versiones de Kotlin/KSP.
         val newPet = Pet(
+            id = "", 
             title = title.value,
             description = description.value,
             category = selectedCategory,
             status = PetStatus.PENDIENTE,
             animalType = animalType.value,
+            breed = "",
             size = size.value,
             hasVaccines = hasVaccines,
             photoUrl = photoUrl.value,

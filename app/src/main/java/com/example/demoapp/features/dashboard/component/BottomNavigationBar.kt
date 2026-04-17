@@ -5,7 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.ShieldMoon
+import androidx.compose.material.icons.outlined.ShieldMoon
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -22,6 +22,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.demoapp.R
 import com.example.demoapp.features.dashboard.navigation.DashboardRoutes
 
+/**
+ * Barra de navegación inferior reutilizable para el dashboard.
+ */
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
@@ -88,6 +91,6 @@ fun userDestinations(): List<Destination> = listOf(
 @Composable
 fun adminDestinations(): List<Destination> = listOf(
     Destination(DashboardRoutes.PetFeed, stringResource(R.string.nav_feed), Icons.Default.Home),
-    Destination(DashboardRoutes.ModeratorPanel, stringResource(R.string.nav_moderator), Icons.Default.ShieldMoon),
+    Destination(DashboardRoutes.ModeratorPanel, stringResource(R.string.nav_moderator), Icons.Outlined.ShieldMoon),
     Destination(DashboardRoutes.Profile, stringResource(R.string.nav_profile), Icons.Default.AccountCircle)
 )

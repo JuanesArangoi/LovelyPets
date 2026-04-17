@@ -112,6 +112,7 @@ fun ModeratorPanelScreen(
     }
 
     Scaffold(
+        modifier = Modifier.padding(paddingValues),
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.moderator_title)) },
