@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -42,17 +43,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.demoapp.R
 import com.example.demoapp.domain.model.Comment
 import com.example.demoapp.domain.model.PetStatus
 
 /**
  * Pantalla de detalle de una publicación de mascota.
- * Usa hiltViewModel() para inyectar PetDetailViewModel.
+ * Includes: share button, view count display, comments, vote and resolve actions.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,18 +66,20 @@ fun PetDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (String) -> Unit
 ) {
-    // Cargar la mascota al entrar
+    val context = LocalContext.current
+
+    // Cargar la mascota al entrar (también incrementa viewCount)
     LaunchedEffect(petId) {
         viewModel.loadPet(petId)
     }
 
-    val pet = viewModel.pet
+    val pet      = viewModel.pet
     val comments = viewModel.getComments()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalle de Publicación") },
+                title = { Text(stringResource(R.string.pet_detail_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -82,16 +87,24 @@ fun PetDetailScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = stringResource(R.string.back_button_description)
                         )
                     }
                 },
                 actions = {
                     if (pet != null) {
+                        // Botón Compartir
+                        IconButton(onClick = { viewModel.sharePet(context) }) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = stringResource(R.string.pet_detail_share_description)
+                            )
+                        }
+                        // Botón Editar
                         IconButton(onClick = { onNavigateToEdit(petId) }) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
-                                contentDescription = "Editar publicación"
+                                contentDescription = stringResource(R.string.pet_detail_edit_description)
                             )
                         }
                     }
@@ -107,7 +120,7 @@ fun PetDetailScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("No se encontró la publicación")
+                Text(stringResource(R.string.pet_detail_not_found))
             }
         } else {
             LazyColumn(
@@ -122,7 +135,7 @@ fun PetDetailScreen(
                             .data(pet.photoUrl)
                             .crossfade(true)
                             .build(),
-                        contentDescription = "Foto de ${pet.title}",
+                        contentDescription = pet.title,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(250.dp),
@@ -149,12 +162,20 @@ fun PetDetailScreen(
                                 style = MaterialTheme.typography.labelMedium,
                                 color = when (pet.status) {
                                     PetStatus.VERIFICADO -> MaterialTheme.colorScheme.primary
-                                    PetStatus.PENDIENTE -> MaterialTheme.colorScheme.tertiary
-                                    PetStatus.RECHAZADO -> MaterialTheme.colorScheme.error
-                                    PetStatus.RESUELTO -> MaterialTheme.colorScheme.secondary
+                                    PetStatus.PENDIENTE  -> MaterialTheme.colorScheme.tertiary
+                                    PetStatus.RECHAZADO  -> MaterialTheme.colorScheme.error
+                                    PetStatus.RESUELTO   -> MaterialTheme.colorScheme.secondary
                                 }
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                        // Contador de visualizaciones
+                        Text(
+                            text = stringResource(R.string.pet_detail_view_count, pet.viewCount),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -171,14 +192,15 @@ fun PetDetailScreen(
                             )
                         }
 
-                        Text(
-                            text = if (pet.hasVaccines) "✅ Vacunas al día" else "❌ Sin vacunas",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        val vaccineText = if (pet.hasVaccines)
+                            stringResource(R.string.pet_detail_vaccines_yes)
+                        else
+                            stringResource(R.string.pet_detail_vaccines_no)
+                        Text(text = vaccineText, style = MaterialTheme.typography.bodyMedium)
 
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Descripción",
+                            text = stringResource(R.string.pet_detail_description_label),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -189,7 +211,7 @@ fun PetDetailScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
-                                contentDescription = "Ubicación",
+                                contentDescription = stringResource(R.string.pet_detail_location_label),
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -202,7 +224,7 @@ fun PetDetailScreen(
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Publicado por: ${pet.ownerName}",
+                            text = stringResource(R.string.pet_detail_published_by, pet.ownerName),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -214,17 +236,34 @@ fun PetDetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            // Botón Me Interesa (votos)
                             Button(
                                 onClick = { viewModel.votePet() },
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Favorite,
-                                    contentDescription = "Me interesa",
+                                    contentDescription = stringResource(R.string.pet_list_votes),
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Me interesa (${pet.votes})")
+                                Text(stringResource(R.string.pet_detail_me_interesa, pet.votes))
+                            }
+
+                            // Botón Compartir
+                            Button(
+                                onClick = { viewModel.sharePet(context) },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiary
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = stringResource(R.string.pet_detail_share_description),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.pet_detail_share))
                             }
 
                             if (pet.status != PetStatus.RESUELTO) {
@@ -236,11 +275,11 @@ fun PetDetailScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
-                                        contentDescription = "Resuelto",
+                                        contentDescription = stringResource(R.string.pet_detail_resolved),
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Resuelto")
+                                    Text(stringResource(R.string.pet_detail_resolved))
                                 }
                             }
                         }
@@ -252,10 +291,10 @@ fun PetDetailScreen(
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 }
 
-                // Sección de comentarios
+                // Título sección comentarios
                 item {
                     Text(
-                        text = "Comentarios (${comments.size})",
+                        text = stringResource(R.string.pet_detail_comments_title, comments.size),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(16.dp)
@@ -277,7 +316,7 @@ fun PetDetailScreen(
                         OutlinedTextField(
                             value = viewModel.commentText,
                             onValueChange = { viewModel.onCommentTextChange(it) },
-                            label = { Text("Escribe un comentario...") },
+                            label = { Text(stringResource(R.string.pet_detail_comment_placeholder)) },
                             modifier = Modifier.weight(1f),
                             maxLines = 3
                         )
@@ -288,7 +327,7 @@ fun PetDetailScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "Enviar comentario",
+                                contentDescription = stringResource(R.string.pet_detail_send_comment_description),
                                 tint = if (viewModel.commentText.isNotBlank())
                                     MaterialTheme.colorScheme.primary
                                 else

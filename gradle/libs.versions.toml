@@ -15,9 +15,10 @@ navigationCompose = "2.9.7"
 foundation = "1.10.4"
 kotlinxSerialization = "1.7.3"
 coil = "2.6.0"
-hiltAndroid = "2.56.2"
+hiltAndroid = "2.59.2"
 hiltNavigationCompose = "1.2.0"
 ksp = "2.1.20-1.0.32"
+dataStore = "1.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -44,6 +45,7 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroid" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
+data-store-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "dataStore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

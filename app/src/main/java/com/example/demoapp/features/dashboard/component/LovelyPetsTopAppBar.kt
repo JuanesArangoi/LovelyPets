@@ -10,11 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.example.demoapp.R
 
-/**
- * Barra superior reutilizable para el dashboard de LovelyPets.
- * Muestra el título dinámico y un botón de cierre de sesión.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LovelyPetsTopAppBar(
@@ -28,11 +26,10 @@ fun LovelyPetsTopAppBar(
             titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
         ),
         actions = {
-            // Botón de cierre de sesión
             IconButton(onClick = logout) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                    contentDescription = "Cerrar sesión"
+                    contentDescription = stringResource(R.string.dashboard_logout_description)
                 )
             }
         }

@@ -4,33 +4,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.demoapp.R
+import com.example.demoapp.core.utils.ResourceProvider
 import com.example.demoapp.core.utils.ValidatedField
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
-/**
- * ViewModel para la pantalla de verificación de código.
- * Valida el código ingresado por el usuario.
- */
 @HiltViewModel
-class VerifyCodeViewModel @Inject constructor() : ViewModel() {
+class VerifyCodeViewModel @Inject constructor(
+    private val resources: ResourceProvider
+) : ViewModel() {
 
     val code = ValidatedField("") { value ->
         when {
-            value.isEmpty() -> "El código es obligatorio"
-            value.length < 4 -> "El código debe tener al menos 4 caracteres"
+            value.isEmpty()  -> resources.getString(R.string.error_code_empty)
+            value.length < 4 -> resources.getString(R.string.error_code_invalid)
             else -> null
         }
     }
 
-    // Resultado de la verificación
     var verifyResult by mutableStateOf<Boolean?>(null)
         private set
 
-    /**
-     * Simula la verificación del código.
-     * En fase 2, siempre se considera exitoso si el código es válido.
-     */
     fun verifyCode() {
         verifyResult = code.isValid
     }

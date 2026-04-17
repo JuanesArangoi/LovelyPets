@@ -27,15 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.R
 
-/**
- * Pantalla para cambiar la contraseña.
- * Usa hiltViewModel() para inyectar ChangePasswordViewModel.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChangePasswordScreen(
@@ -45,15 +42,13 @@ fun ChangePasswordScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Observar resultado
     LaunchedEffect(viewModel.changeResult) {
         viewModel.changeResult?.let { success ->
             if (success) {
-                snackbarHostState.showSnackbar("¡Contraseña actualizada exitosamente!")
+                snackbarHostState.showSnackbar("✅")
                 viewModel.resetResult()
                 onNavigateToLogin()
             } else {
-                snackbarHostState.showSnackbar("Las contraseñas no coinciden o son muy cortas")
                 viewModel.resetResult()
             }
         }
@@ -63,7 +58,7 @@ fun ChangePasswordScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Cambiar Contraseña") },
+                title = { Text(stringResource(R.string.change_password_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -71,7 +66,7 @@ fun ChangePasswordScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = stringResource(R.string.back_button_description)
                         )
                     }
                 }
@@ -88,11 +83,11 @@ fun ChangePasswordScreen(
         ) {
             Image(
                 painter = painterResource(R.mipmap.mascota),
-                contentDescription = "Logo de la Aplicación"
+                contentDescription = stringResource(R.string.app_logo_description)
             )
 
             Text(
-                text = "Nueva Contraseña",
+                text = stringResource(R.string.change_password_title),
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -100,7 +95,7 @@ fun ChangePasswordScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.newPassword.value,
                 onValueChange = { viewModel.newPassword.onChange(it) },
-                label = { Text("Nueva contraseña") },
+                label = { Text(stringResource(R.string.change_password_new_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 isError = viewModel.newPassword.error != null,
                 supportingText = viewModel.newPassword.error?.let { error -> { Text(text = error) } }
@@ -110,7 +105,7 @@ fun ChangePasswordScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.confirmPassword.value,
                 onValueChange = { viewModel.confirmPassword.onChange(it) },
-                label = { Text("Confirmar contraseña") },
+                label = { Text(stringResource(R.string.change_password_confirm_label)) },
                 visualTransformation = PasswordVisualTransformation(),
                 isError = viewModel.confirmPassword.error != null,
                 supportingText = viewModel.confirmPassword.error?.let { error -> { Text(text = error) } }
@@ -121,7 +116,7 @@ fun ChangePasswordScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = viewModel.isFormValid
             ) {
-                Text("Actualizar Contraseña")
+                Text(stringResource(R.string.change_password_button))
             }
         }
     }

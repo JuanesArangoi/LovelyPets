@@ -39,15 +39,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.demoapp.R
 import com.example.demoapp.domain.model.PetCategory
 
-/**
- * Pantalla para crear una nueva publicación de mascota.
- * Usa hiltViewModel() para inyectar CreatePetViewModel.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePetScreen(
@@ -60,10 +58,9 @@ fun CreatePetScreen(
     LaunchedEffect(viewModel.createResult) {
         viewModel.createResult?.let { success ->
             if (success) {
-                snackbarHostState.showSnackbar("¡Publicación creada exitosamente!")
+                snackbarHostState.showSnackbar("✅")
                 onNavigateBack()
             } else {
-                snackbarHostState.showSnackbar("Error al crear la publicación")
                 viewModel.resetResult()
             }
         }
@@ -73,7 +70,7 @@ fun CreatePetScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Nueva Publicación") },
+                title = { Text(stringResource(R.string.create_pet_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -81,7 +78,7 @@ fun CreatePetScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = stringResource(R.string.back_button_description)
                         )
                     }
                 }
@@ -96,29 +93,26 @@ fun CreatePetScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Título
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.title.value,
                 onValueChange = { viewModel.title.onChange(it) },
-                label = { Text("Título de la publicación") },
+                label = { Text(stringResource(R.string.pet_form_title_publication_label)) },
                 isError = viewModel.title.error != null,
                 supportingText = viewModel.title.error?.let { error -> { Text(text = error) } }
             )
 
-            // Descripción
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.description.value,
                 onValueChange = { viewModel.description.onChange(it) },
-                label = { Text("Descripción detallada") },
+                label = { Text(stringResource(R.string.pet_form_description_detailed_label)) },
                 minLines = 3,
                 maxLines = 5,
                 isError = viewModel.description.error != null,
                 supportingText = viewModel.description.error?.let { error -> { Text(text = error) } }
             )
 
-            // Dropdown: Categoría
             var expandedCategory by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(
                 expanded = expandedCategory,
@@ -129,7 +123,7 @@ fun CreatePetScreen(
                     value = viewModel.selectedCategory.label,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Categoría") },
+                    label = { Text(stringResource(R.string.pet_form_category_label)) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) }
                 )
                 ExposedDropdownMenu(
@@ -148,19 +142,21 @@ fun CreatePetScreen(
                 }
             }
 
-            // Tipo de animal
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.animalType.value,
                 onValueChange = { viewModel.animalType.onChange(it) },
-                label = { Text("Tipo de animal (Perro, Gato, etc.)") },
+                label = { Text(stringResource(R.string.pet_form_animal_type_label)) },
                 isError = viewModel.animalType.error != null,
                 supportingText = viewModel.animalType.error?.let { error -> { Text(text = error) } }
             )
 
-            // Tamaño
             var expandedSize by remember { mutableStateOf(false) }
-            val sizes = listOf("Pequeño", "Mediano", "Grande")
+            val sizes = listOf(
+                stringResource(R.string.pet_form_size_small),
+                stringResource(R.string.pet_form_size_medium),
+                stringResource(R.string.pet_form_size_large)
+            )
             ExposedDropdownMenuBox(
                 expanded = expandedSize,
                 onExpandedChange = { expandedSize = it }
@@ -170,7 +166,7 @@ fun CreatePetScreen(
                     value = viewModel.size.value,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Tamaño") },
+                    label = { Text(stringResource(R.string.pet_form_size_label)) },
                     isError = viewModel.size.error != null,
                     supportingText = viewModel.size.error?.let { error -> { Text(text = error) } },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSize) }
@@ -191,21 +187,19 @@ fun CreatePetScreen(
                 }
             }
 
-            // Checkbox: Vacunas
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(
                     checked = viewModel.hasVaccines,
                     onCheckedChange = { viewModel.onVaccinesChanged(it) }
                 )
-                Text("¿Tiene vacunas al día?", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.pet_form_has_vaccines_label), style = MaterialTheme.typography.bodyMedium)
             }
 
-            // URL de la foto
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.photoUrl.value,
                 onValueChange = { viewModel.photoUrl.onChange(it) },
-                label = { Text("URL de la foto") },
+                label = { Text(stringResource(R.string.pet_form_photo_url_label)) },
                 isError = viewModel.photoUrl.error != null,
                 supportingText = viewModel.photoUrl.error?.let { error -> { Text(text = error) } },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
@@ -213,14 +207,13 @@ fun CreatePetScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Botón crear
             Button(
                 onClick = { viewModel.createPet() },
                 enabled = viewModel.isFormValid,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(imageVector = Icons.Default.Create, contentDescription = "Crear")
-                Text("  Publicar mascota", modifier = Modifier.padding(start = 4.dp))
+                Icon(imageVector = Icons.Default.Create, contentDescription = stringResource(R.string.create_pet_title))
+                Text(stringResource(R.string.pet_form_publish_button), modifier = Modifier.padding(start = 4.dp))
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -26,15 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.R
 
-/**
- * Pantalla para enviar código de recuperación de contraseña.
- * Usa hiltViewModel() para inyectar SendCodeViewModel.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SendCodeScreen(
@@ -42,7 +39,6 @@ fun SendCodeScreen(
     onNavigateToVerifyCode: () -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
-    // Observar resultado del envío
     LaunchedEffect(viewModel.sendResult) {
         viewModel.sendResult?.let { success ->
             if (success) {
@@ -55,7 +51,7 @@ fun SendCodeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Recuperar Contraseña") },
+                title = { Text(stringResource(R.string.send_code_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -63,7 +59,7 @@ fun SendCodeScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = stringResource(R.string.back_button_description)
                         )
                     }
                 }
@@ -80,27 +76,21 @@ fun SendCodeScreen(
         ) {
             Image(
                 painter = painterResource(R.mipmap.mascota),
-                contentDescription = "Logo de la Aplicación"
+                contentDescription = stringResource(R.string.app_logo_description)
             )
 
             Text(
-                text = "Recuperar Contraseña",
+                text = stringResource(R.string.send_code_title),
                 style = MaterialTheme.typography.headlineMedium
-            )
-
-            Text(
-                text = "Ingresa tu email y te enviaremos un código de verificación",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(text = "Email") },
+                label = { Text(text = stringResource(R.string.send_code_email_label)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Email,
-                        contentDescription = "Icono de email"
+                        contentDescription = stringResource(R.string.send_code_email_label)
                     )
                 },
                 value = viewModel.email.value,
@@ -115,7 +105,7 @@ fun SendCodeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = viewModel.email.isValid
             ) {
-                Text("Enviar código")
+                Text(stringResource(R.string.send_code_button))
             }
         }
     }

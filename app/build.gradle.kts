@@ -63,6 +63,8 @@ dependencies {
     ksp(libs.hilt.compiler)
     // --- Hilt + Compose Navigation ---
     implementation(libs.androidx.hilt.navigation.compose)
+    // --- DataStore ---
+    implementation(libs.data.store.preferences)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

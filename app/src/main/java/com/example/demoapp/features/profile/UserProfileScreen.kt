@@ -2,6 +2,7 @@ package com.example.demoapp.features.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,15 +42,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.demoapp.R
 
-/**
- * Pantalla de perfil del usuario.
- * Permite editar datos personales, ver estadísticas y eliminar la cuenta.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserProfileScreen(
@@ -63,22 +62,19 @@ fun UserProfileScreen(
 
     val currentUser = viewModel.getCurrentUser()
 
-    // Cargar perfil al entrar
     LaunchedEffect(Unit) {
         viewModel.loadUserData()
     }
 
-    // Manejar resultado de edición
     LaunchedEffect(viewModel.updateResult) {
         viewModel.updateResult?.let { success ->
             if (success) {
-                snackbarHostState.showSnackbar("¡Perfil actualizado exitosamente!")
+                snackbarHostState.showSnackbar("✅")
                 viewModel.resetUpdateResult()
             }
         }
     }
 
-    // Manejar resultado de eliminación
     LaunchedEffect(viewModel.deleteResult) {
         viewModel.deleteResult?.let { success ->
             if (success) {
@@ -88,12 +84,11 @@ fun UserProfileScreen(
         }
     }
 
-    // Diálogo de confirmación para eliminar cuenta
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Eliminar cuenta") },
-            text = { Text("¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.") },
+            title = { Text(stringResource(R.string.profile_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.profile_delete_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -101,12 +96,12 @@ fun UserProfileScreen(
                         showDeleteDialog = false
                     }
                 ) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.profile_confirm_button), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.profile_cancel_button))
                 }
             }
         )
@@ -116,7 +111,7 @@ fun UserProfileScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Mi Perfil") },
+                title = { Text(stringResource(R.string.profile_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -124,7 +119,7 @@ fun UserProfileScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = stringResource(R.string.back_button_description)
                         )
                     }
                 }
@@ -139,7 +134,6 @@ fun UserProfileScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Información del usuario
             if (currentUser != null) {
                 // Email (no editable)
                 Card(
@@ -150,7 +144,7 @@ fun UserProfileScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Correo electrónico",
+                            text = stringResource(R.string.profile_email_label),
                             style = MaterialTheme.typography.labelMedium
                         )
                         Text(
@@ -176,22 +170,14 @@ fun UserProfileScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Nivel",
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Text(
-                                text = currentUser.level.label,
+                                text = stringResource(R.string.profile_level_label, currentUser.level.label),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "Puntos",
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                            Text(
-                                text = "${currentUser.points}",
+                                text = stringResource(R.string.profile_points_label, currentUser.points),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -218,7 +204,7 @@ fun UserProfileScreen(
 
             // Estadísticas
             Text(
-                text = "📊 Mis estadísticas",
+                text = "📊",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -227,27 +213,21 @@ fun UserProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatCard(label = "Activas", value = viewModel.getActivePetsCount().toString())
-                StatCard(label = "Resueltas", value = viewModel.getResolvedPetsCount().toString())
-                StatCard(label = "Pendientes", value = viewModel.getPendingPetsCount().toString())
+                StatCard(label = stringResource(R.string.pet_card_status_label), value = viewModel.getActivePetsCount().toString())
+                StatCard(label = stringResource(R.string.pet_detail_resolved), value = viewModel.getResolvedPetsCount().toString())
+                StatCard(label = stringResource(R.string.moderator_pending_label), value = viewModel.getPendingPetsCount().toString())
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Campos editables
-            Text(
-                text = "✏️ Editar datos",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.name.value,
                 onValueChange = { viewModel.name.onChange(it) },
-                label = { Text("Nombre completo") },
+                label = { Text(stringResource(R.string.profile_name_label)) },
                 leadingIcon = {
-                    Icon(Icons.Default.Person, contentDescription = "Nombre")
+                    Icon(Icons.Default.Person, contentDescription = stringResource(R.string.profile_name_label))
                 },
                 isError = viewModel.name.error != null,
                 supportingText = viewModel.name.error?.let { error ->
@@ -259,7 +239,7 @@ fun UserProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.phone.value,
                 onValueChange = { viewModel.phone.onChange(it) },
-                label = { Text("Teléfono") },
+                label = { Text(stringResource(R.string.profile_phone_label)) },
                 isError = viewModel.phone.error != null,
                 supportingText = viewModel.phone.error?.let { error ->
                     { Text(text = error) }
@@ -271,7 +251,7 @@ fun UserProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.city.value,
                 onValueChange = { viewModel.city.onChange(it) },
-                label = { Text("Ciudad") },
+                label = { Text(stringResource(R.string.profile_city_label)) },
                 isError = viewModel.city.error != null,
                 supportingText = viewModel.city.error?.let { error ->
                     { Text(text = error) }
@@ -282,7 +262,7 @@ fun UserProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.address.value,
                 onValueChange = { viewModel.address.onChange(it) },
-                label = { Text("Dirección (opcional)") }
+                label = { Text(stringResource(R.string.profile_city_label)) }
             )
 
             // Botón guardar cambios
@@ -290,7 +270,7 @@ fun UserProfileScreen(
                 onClick = { viewModel.updateProfile() },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Guardar cambios")
+                Text(stringResource(R.string.profile_save_button))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -305,10 +285,10 @@ fun UserProfileScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Eliminar cuenta"
+                    contentDescription = stringResource(R.string.profile_delete_account_button)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Eliminar mi cuenta")
+                Text(stringResource(R.string.profile_delete_account_button))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -316,9 +296,6 @@ fun UserProfileScreen(
     }
 }
 
-/**
- * Tarjeta de estadística individual.
- */
 @Composable
 fun StatCard(label: String, value: String) {
     Card(

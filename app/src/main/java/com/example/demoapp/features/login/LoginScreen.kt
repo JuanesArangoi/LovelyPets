@@ -27,48 +27,46 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.R
 import com.example.demoapp.domain.model.UserRole
+import kotlinx.coroutines.launch
 
 /**
  * Pantalla de inicio de sesión.
- * Usa hiltViewModel() para inyectar el LoginViewModel via Hilt.
- * Navega al dashboard de usuario o moderador según el rol.
+ * Tras un login exitoso, llama a onSessionStarted(userId, role) para que
+ * AppNavigation persista la sesión en DataStore y cambie el flujo de navegación.
  */
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
-    onNavigateToUserDashboard: () -> Unit = {},
-    onNavigateToAdminDashboard: () -> Unit = {},
+    onSessionStarted: (userId: String, role: UserRole) -> Unit = { _, _ -> },
     onForgotPasswordClick: () -> Unit = {},
     onRegisterClick: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val currentUser by viewModel.currentUser.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val loginResult by viewModel.loginResult.collectAsState()
 
-    // Efecto para manejar el resultado del login
-    LaunchedEffect(viewModel.loginResult) {
-        viewModel.loginResult?.let { success ->
-            if (success) {
-                viewModel.resetForm()
-                // Navegar según el rol del usuario
-                if (currentUser?.role == UserRole.MODERADOR) {
-                    onNavigateToAdminDashboard()
-                } else {
-                    onNavigateToUserDashboard()
-                }
-            } else {
-                snackbarHostState.showSnackbar("Credenciales incorrectas")
+    // Reacciona al resultado del login
+    LaunchedEffect(loginResult) {
+        loginResult?.let { success ->
+            if (!success) {
+                snackbarHostState.showSnackbar(
+                    message = "Credenciales incorrectas"
+                )
                 viewModel.resetLoginResult()
             }
+            // Si fue exitoso, el resultado lo maneja el scope de la corrutina que llama a login()
         }
     }
 
@@ -85,11 +83,11 @@ fun LoginScreen(
         ) {
             Image(
                 painter = painterResource(R.mipmap.mascota),
-                contentDescription = "Logo de la Aplicación"
+                contentDescription = stringResource(R.string.app_logo_description)
             )
 
             Text(
-                text = "Inicio de Sesión",
+                text = stringResource(R.string.login_title),
                 style = MaterialTheme.typography.headlineMedium
             )
 
@@ -97,9 +95,12 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.email.value,
                 onValueChange = { viewModel.email.onChange(it) },
-                label = { Text(text = "Email") },
+                label = { Text(text = stringResource(R.string.login_email_label)) },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Email, contentDescription = "Email")
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = stringResource(R.string.login_email_label)
+                    )
                 },
                 isError = viewModel.email.error != null,
                 supportingText = viewModel.email.error?.let { error -> { Text(text = error) } },
@@ -111,9 +112,12 @@ fun LoginScreen(
                 value = viewModel.password.value,
                 onValueChange = { viewModel.password.onChange(it) },
                 visualTransformation = PasswordVisualTransformation(),
-                label = { Text(text = "Contraseña") },
+                label = { Text(text = stringResource(R.string.login_password_label)) },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Lock, contentDescription = "Contraseña")
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = stringResource(R.string.login_password_label)
+                    )
                 },
                 isError = viewModel.password.error != null,
                 supportingText = viewModel.password.error?.let { error -> { Text(text = error) } },
@@ -121,17 +125,28 @@ fun LoginScreen(
             )
 
             Button(
-                onClick = { viewModel.login() },
+                onClick = {
+                    coroutineScope.launch {
+                        val result = viewModel.login()
+                        if (result != null) {
+                            viewModel.resetForm()
+                            onSessionStarted(result.first, result.second)
+                        }
+                    }
+                },
                 enabled = viewModel.isFormValid,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(imageVector = Icons.Default.Check, contentDescription = "Iniciar sesión")
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(R.string.login_icon_description)
+                )
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "Iniciar Sesión")
+                Text(text = stringResource(R.string.login_button))
             }
 
             Text(
-                text = "¿Olvidaste tu contraseña?",
+                text = stringResource(R.string.login_forgot_password),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -139,7 +154,7 @@ fun LoginScreen(
             )
 
             Text(
-                text = "¿No tienes cuenta? Regístrate",
+                text = stringResource(R.string.login_register_link),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .padding(top = 4.dp)

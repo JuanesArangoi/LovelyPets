@@ -20,6 +20,7 @@ data class Pet(
     val ownerId: String,                              // ID del usuario que creó la publicación
     val ownerName: String = "",                       // Nombre del dueño de la publicación
     val votes: Int = 0,                               // Cantidad de votos "Me interesa"
+    val viewCount: Int = 0,                           // Contador de visualizaciones
     val rejectionReason: String = "",                 // Motivo de rechazo (si aplica)
     val comments: List<Comment> = emptyList(),        // Lista de comentarios
     val createdAt: Long = System.currentTimeMillis()  // Fecha de creación en milisegundos

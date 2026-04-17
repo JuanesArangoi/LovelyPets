@@ -24,14 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.R
 
-/**
- * Pantalla para verificar el código de recuperación de contraseña.
- * Usa hiltViewModel() para inyectar VerifyCodeViewModel.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerifyCodeScreen(
@@ -39,7 +36,6 @@ fun VerifyCodeScreen(
     onNavigateToChangePassword: () -> Unit = {},
     onNavigateBack: () -> Unit = {}
 ) {
-    // Observar resultado de la verificación
     LaunchedEffect(viewModel.verifyResult) {
         viewModel.verifyResult?.let { success ->
             if (success) {
@@ -52,7 +48,7 @@ fun VerifyCodeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Verificar Código") },
+                title = { Text(stringResource(R.string.verify_code_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -60,7 +56,7 @@ fun VerifyCodeScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = stringResource(R.string.back_button_description)
                         )
                     }
                 }
@@ -77,25 +73,19 @@ fun VerifyCodeScreen(
         ) {
             Image(
                 painter = painterResource(R.mipmap.mascota),
-                contentDescription = "Logo de la Aplicación"
+                contentDescription = stringResource(R.string.app_logo_description)
             )
 
             Text(
-                text = "Verificar Código",
+                text = stringResource(R.string.verify_code_title),
                 style = MaterialTheme.typography.headlineMedium
-            )
-
-            Text(
-                text = "Ingresa el código que recibiste en tu correo electrónico",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.code.value,
                 onValueChange = { viewModel.code.onChange(it) },
-                label = { Text("Código de verificación") },
+                label = { Text(stringResource(R.string.verify_code_label)) },
                 isError = viewModel.code.error != null,
                 supportingText = viewModel.code.error?.let { error -> { Text(text = error) } }
             )
@@ -105,7 +95,7 @@ fun VerifyCodeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = viewModel.code.isValid
             ) {
-                Text("Validar Código")
+                Text(stringResource(R.string.verify_code_button))
             }
         }
     }

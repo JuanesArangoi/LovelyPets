@@ -118,6 +118,15 @@ class PetRepositoryImpl @Inject constructor() : PetRepository {
         return false
     }
 
+    override fun incrementViewCount(petId: String) {
+        val index = _pets.value.indexOfFirst { it.id == petId }
+        if (index != -1) {
+            val mutableList = _pets.value.toMutableList()
+            mutableList[index] = mutableList[index].copy(viewCount = mutableList[index].viewCount + 1)
+            _pets.value = mutableList
+        }
+    }
+
     /**
      * Carga datos de ejemplo para demostración.
      */

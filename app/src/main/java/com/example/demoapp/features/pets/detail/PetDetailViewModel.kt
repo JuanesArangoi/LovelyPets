@@ -1,9 +1,13 @@
 package com.example.demoapp.features.pets.detail
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.demoapp.R
+import com.example.demoapp.core.utils.ResourceProvider
 import com.example.demoapp.domain.model.Comment
 import com.example.demoapp.domain.model.Pet
 import com.example.demoapp.domain.repository.CommentRepository
@@ -15,13 +19,15 @@ import javax.inject.Inject
 
 /**
  * ViewModel para el detalle de una publicación de mascota.
- * Maneja la carga de datos, comentarios, votación y resolución.
+ * Maneja la carga de datos, comentarios, votación, resolución,
+ * contador de visualizaciones y compartir via Android Share Sheet.
  */
 @HiltViewModel
 class PetDetailViewModel @Inject constructor(
     private val petRepository: PetRepository,
     private val commentRepository: CommentRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val resources: ResourceProvider
 ) : ViewModel() {
 
     // Mascota cargada
@@ -33,9 +39,10 @@ class PetDetailViewModel @Inject constructor(
         private set
 
     /**
-     * Carga los datos de una mascota por su ID.
+     * Carga los datos de una mascota por su ID e incrementa el contador de visualizaciones.
      */
     fun loadPet(petId: String) {
+        petRepository.incrementViewCount(petId)  // Incrementar cada vez que se abre el detalle
         pet = petRepository.findById(petId)
     }
 
@@ -63,11 +70,11 @@ class PetDetailViewModel @Inject constructor(
         if (commentText.isBlank()) return
 
         val comment = Comment(
-            id = UUID.randomUUID().toString(),
-            petId = currentPet.id,
-            authorId = currentUser.id,
+            id         = UUID.randomUUID().toString(),
+            petId      = currentPet.id,
+            authorId   = currentUser.id,
             authorName = currentUser.name,
-            text = commentText
+            text       = commentText
         )
         commentRepository.add(comment)
         commentText = ""
@@ -77,10 +84,10 @@ class PetDetailViewModel @Inject constructor(
      * Vota por la publicación.
      */
     fun votePet() {
-        val petId = pet?.id ?: return
+        val petId  = pet?.id ?: return
         val userId = userRepository.currentUser.value?.id ?: return
         petRepository.vote(petId, userId)
-        loadPet(petId) // Recargar para actualizar votos
+        pet = petRepository.findById(petId) // Recargar para actualizar votos
     }
 
     /**
@@ -89,6 +96,27 @@ class PetDetailViewModel @Inject constructor(
     fun resolvePet() {
         val petId = pet?.id ?: return
         petRepository.resolve(petId)
-        loadPet(petId) // Recargar para actualizar estado
+        pet = petRepository.findById(petId) // Recargar para actualizar estado
+    }
+
+    /**
+     * Comparte la publicación usando el sistema de compartir de Android.
+     * Permite compartir vía WhatsApp, correo, SMS, etc.
+     */
+    fun sharePet(context: Context) {
+        val currentPet = pet ?: return
+        val shareText = resources.getString(
+            R.string.pet_share_text,
+            currentPet.title,
+            currentPet.description
+        )
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type    = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.pet_share_subject))
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }
+        context.startActivity(
+            Intent.createChooser(intent, resources.getString(R.string.pet_detail_share))
+        )
     }
 }

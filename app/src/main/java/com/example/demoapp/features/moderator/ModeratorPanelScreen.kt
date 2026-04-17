@@ -2,6 +2,7 @@ package com.example.demoapp.features.moderator
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +33,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,18 +42,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.demoapp.R
 import com.example.demoapp.domain.model.Pet
 
-/**
- * Pantalla del panel de moderador.
- * Muestra publicaciones pendientes de verificación con opciones para aprobar o rechazar.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorPanelScreen(
@@ -63,11 +61,9 @@ fun ModeratorPanelScreen(
 ) {
     val pendingPets = viewModel.getPendingPets()
 
-    // Estado para el diálogo de rechazo
     var showRejectDialog by remember { mutableStateOf(false) }
     var petToReject by remember { mutableStateOf<String?>(null) }
 
-    // Diálogo de rechazo con motivo
     if (showRejectDialog && petToReject != null) {
         AlertDialog(
             onDismissRequest = {
@@ -75,15 +71,15 @@ fun ModeratorPanelScreen(
                 petToReject = null
                 viewModel.onRejectionReasonChange("")
             },
-            title = { Text("Rechazar publicación") },
+            title = { Text(stringResource(R.string.moderator_reject_button)) },
             text = {
                 Column {
-                    Text("Escribe el motivo del rechazo:")
+                    Text(stringResource(R.string.moderator_reject_reason_label))
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = viewModel.rejectionReason,
                         onValueChange = { viewModel.onRejectionReasonChange(it) },
-                        label = { Text("Motivo del rechazo") },
+                        label = { Text(stringResource(R.string.moderator_reject_reason_label)) },
                         minLines = 2,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -98,7 +94,7 @@ fun ModeratorPanelScreen(
                     },
                     enabled = viewModel.rejectionReason.isNotBlank()
                 ) {
-                    Text("Rechazar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.moderator_reject_button), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -109,7 +105,7 @@ fun ModeratorPanelScreen(
                         viewModel.clearRejectionReason()
                     }
                 ) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.profile_cancel_button))
                 }
             }
         )
@@ -118,7 +114,7 @@ fun ModeratorPanelScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("🛡️ Panel de Moderador") },
+                title = { Text(stringResource(R.string.moderator_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
@@ -126,7 +122,7 @@ fun ModeratorPanelScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
+                            contentDescription = stringResource(R.string.back_button_description)
                         )
                     }
                 }
@@ -134,7 +130,6 @@ fun ModeratorPanelScreen(
         }
     ) { innerPadding ->
         if (pendingPets.isEmpty()) {
-            // No hay publicaciones pendientes
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -143,7 +138,7 @@ fun ModeratorPanelScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "✅ No hay publicaciones pendientes",
+                    text = stringResource(R.string.moderator_empty),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -153,19 +148,17 @@ fun ModeratorPanelScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Encabezado con contador
                 item {
                     Text(
-                        text = "Publicaciones pendientes (${pendingPets.size})",
+                        text = stringResource(R.string.moderator_pending_label) + " (${pendingPets.size})",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                // Lista de publicaciones pendientes
                 items(pendingPets) { pet ->
                     ModeratorPetCard(
                         pet = pet,
@@ -181,15 +174,11 @@ fun ModeratorPanelScreen(
     }
 }
 
-/**
- * Tarjeta de publicación en el panel de moderador.
- * Incluye botones para verificar o rechazar.
- */
 @Composable
 fun ModeratorPetCard(
     pet: Pet,
-    onVerify: () -> Unit,     // Acción al verificar
-    onReject: () -> Unit      // Acción al rechazar
+    onVerify: () -> Unit,
+    onReject: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -197,13 +186,12 @@ fun ModeratorPetCard(
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
-            // Imagen de la mascota
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(pet.photoUrl)
                     .crossfade(true)
                     .build(),
-                contentDescription = "Foto de ${pet.title}",
+                contentDescription = pet.title,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
@@ -230,19 +218,17 @@ fun ModeratorPetCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "Publicado por: ${pet.ownerName}",
+                    text = stringResource(R.string.pet_detail_published_by, pet.ownerName),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Botones de acción del moderador
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Botón Verificar
                     Button(
                         onClick = onVerify,
                         modifier = Modifier.weight(1f),
@@ -252,13 +238,12 @@ fun ModeratorPetCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
-                            contentDescription = "Verificar"
+                            contentDescription = stringResource(R.string.moderator_verify_button)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Verificar")
+                        Text(stringResource(R.string.moderator_verify_button))
                     }
 
-                    // Botón Rechazar
                     Button(
                         onClick = onReject,
                         modifier = Modifier.weight(1f),
@@ -268,10 +253,10 @@ fun ModeratorPetCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Rechazar"
+                            contentDescription = stringResource(R.string.moderator_reject_button)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Rechazar")
+                        Text(stringResource(R.string.moderator_reject_button))
                     }
                 }
             }

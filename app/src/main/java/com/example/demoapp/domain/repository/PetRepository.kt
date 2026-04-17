@@ -23,4 +23,5 @@ interface PetRepository {
     fun verify(petId: String): Boolean
     fun reject(petId: String, reason: String): Boolean
     fun resolve(petId: String): Boolean
+    fun incrementViewCount(petId: String)
 }

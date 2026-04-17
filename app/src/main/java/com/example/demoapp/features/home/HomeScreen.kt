@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.demoapp.R
@@ -41,17 +42,17 @@ fun HomeScreen(
         // Logo de la aplicación
         Image(
             painter = painterResource(R.drawable.cait),
-            contentDescription = "Logo de LovelyPets"
+            contentDescription = stringResource(R.string.app_logo_description)
         )
 
         // Texto de bienvenida
         Text(
-            text = "🐾 LovelyPets",
+            text = stringResource(R.string.home_title),
             style = MaterialTheme.typography.headlineLarge
         )
 
         Text(
-            text = "Red de adopción de mascotas",
+            text = stringResource(R.string.home_welcome_message),
             fontSize = 18.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -66,27 +67,26 @@ fun HomeScreen(
             // Botón de iniciar sesión
             Button(
                 modifier = Modifier.size(width = 170.dp, height = 50.dp),
-                onClick = onNavigateToLogin // Navegar a Login
+                onClick = onNavigateToLogin
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Icono de persona"
+                    contentDescription = stringResource(R.string.home_login_button)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Iniciar Sesión")
+                Text(text = stringResource(R.string.home_login_button))
             }
 
-            // Botón de crear cuenta
             Button(
                 modifier = Modifier.size(width = 170.dp, height = 50.dp),
-                onClick = onNavigateToRegister // Navegar a Registro
+                onClick = onNavigateToRegister
             ) {
                 Icon(
                     imageVector = Icons.Default.Favorite,
-                    contentDescription = "Icono de favorito"
+                    contentDescription = stringResource(R.string.home_register_button)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Crear Cuenta")
+                Text(text = stringResource(R.string.home_register_button))
             }
         }
     }

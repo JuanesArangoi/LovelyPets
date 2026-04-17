@@ -30,20 +30,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.demoapp.R
 import com.example.demoapp.domain.model.Pet
 import com.example.demoapp.domain.model.PetCategory
 
-/**
- * Pantalla principal del feed de publicaciones de mascotas.
- * Muestra una lista con filtros por categoría.
- * Ya no tiene TopAppBar ni FAB propios; eso lo maneja el dashboard.
- */
 @Composable
 fun PetListScreen(
     viewModel: PetListViewModel = hiltViewModel(),
@@ -58,18 +55,17 @@ fun PetListScreen(
             .fillMaxSize()
             .padding(paddingValues)
     ) {
-        // Filtros por categoría usando chips horizontales
+        // Filtros por categoría
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Chip "Todas"
             item {
                 FilterChip(
                     selected = viewModel.selectedCategory == null,
                     onClick = { viewModel.onCategorySelected(null) },
-                    label = { Text("Todas") }
+                    label = { Text(stringResource(R.string.pet_list_filter_all)) }
                 )
             }
             items(PetCategory.entries) { category ->
@@ -81,7 +77,6 @@ fun PetListScreen(
             }
         }
 
-        // Lista de publicaciones
         if (pets.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -89,7 +84,7 @@ fun PetListScreen(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "No hay publicaciones disponibles",
+                    text = stringResource(R.string.pet_list_empty),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -112,9 +107,6 @@ fun PetListScreen(
     }
 }
 
-/**
- * Tarjeta que muestra la información resumida de una publicación de mascota.
- */
 @Composable
 fun PetCard(
     pet: Pet,
@@ -134,7 +126,7 @@ fun PetCard(
                     .data(pet.photoUrl)
                     .crossfade(true)
                     .build(),
-                contentDescription = "Foto de ${pet.title}",
+                contentDescription = pet.title,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
@@ -161,7 +153,8 @@ fun PetCard(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = if (pet.hasVaccines) "✅ Vacunado" else "❌ Sin vacunas",
+                        text = if (pet.hasVaccines) stringResource(R.string.pet_detail_vaccines_yes)
+                               else stringResource(R.string.pet_detail_vaccines_no),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -180,7 +173,7 @@ fun PetCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Por: ${pet.ownerName}",
+                        text = stringResource(R.string.pet_detail_published_by, pet.ownerName),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -190,7 +183,7 @@ fun PetCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Favorite,
-                            contentDescription = "Me interesa",
+                            contentDescription = stringResource(R.string.pet_list_votes),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(18.dp)
                         )
