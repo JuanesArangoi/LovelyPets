@@ -150,6 +150,20 @@ fun RegisterScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
             )
 
+            // Campo: Confirmar Contraseña
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = viewModel.confirmPassword.value,
+                onValueChange = { viewModel.confirmPassword.onChange(it) },
+                visualTransformation = PasswordVisualTransformation(),
+                label = { Text(text = stringResource(R.string.register_confirm_password_label)) },
+                leadingIcon = { Icon(Icons.Default.Lock, null, tint = customGreenDark) },
+                colors = textFieldColors,
+                isError = viewModel.confirmPassword.error != null,
+                supportingText = viewModel.confirmPassword.error?.let { error -> { Text(text = error) } },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+
             // Campo: Teléfono
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
