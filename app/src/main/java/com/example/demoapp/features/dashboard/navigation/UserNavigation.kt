@@ -6,32 +6,28 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.example.demoapp.features.map.MapScreen
 import com.example.demoapp.features.moderator.ModeratorPanelScreen
+import com.example.demoapp.features.notifications.NotificationsScreen
 import com.example.demoapp.features.pets.create.CreatePetScreen
 import com.example.demoapp.features.pets.detail.PetDetailScreen
 import com.example.demoapp.features.pets.edit.EditPetScreen
 import com.example.demoapp.features.pets.list.PetListScreen
 import com.example.demoapp.features.profile.UserProfileScreen
 
-/**
- * NavHost interno para la navegación dentro del dashboard.
- * Gestiona las pantallas accesibles desde la barra de navegación inferior.
- * Este NavHost es diferente al principal de la aplicación (AppNavigation).
- */
 @Composable
 fun UserNavigation(
     navController: NavHostController,
     padding: PaddingValues,
-    showModeratorPanel: Boolean = false
+    showModeratorPanel: Boolean = false,
+    onLogout: () -> Unit
 ) {
     NavHost(
         navController = navController,
         startDestination = DashboardRoutes.PetFeed
     ) {
-        // === Feed de mascotas (pantalla principal) ===
         composable<DashboardRoutes.PetFeed> {
             PetListScreen(
-                paddingValues = padding,
                 onNavigateToPetDetail = { petId ->
                     navController.navigate(DashboardRoutes.PetDetail(petId))
                 },
@@ -41,25 +37,34 @@ fun UserNavigation(
             )
         }
 
-        // === Perfil del usuario ===
-        composable<DashboardRoutes.Profile> {
-            UserProfileScreen(
-                paddingValues = padding,
+        composable<DashboardRoutes.Map> {
+            MapScreen(paddingValues = padding)
+        }
+
+        composable<DashboardRoutes.Notifications> {
+            NotificationsScreen(
                 onNavigateBack = {
                     navController.popBackStack()
-                },
-                onAccountDeleted = {
-                    // La navegación de vuelta a Home se maneja desde el dashboard padre
                 }
             )
         }
 
-        // === Detalle de publicación ===
+        composable<DashboardRoutes.Profile> {
+            UserProfileScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onAccountDeleted = {
+                    onLogout()
+                },
+                onLogout = onLogout
+            )
+        }
+
         composable<DashboardRoutes.PetDetail> {
             val args = it.toRoute<DashboardRoutes.PetDetail>()
             PetDetailScreen(
                 petId = args.petId,
-                paddingValues = padding,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -69,33 +74,27 @@ fun UserNavigation(
             )
         }
 
-        // === Crear publicación ===
         composable<DashboardRoutes.CreatePet> {
             CreatePetScreen(
-                paddingValues = padding,
                 onNavigateBack = {
                     navController.popBackStack()
                 }
             )
         }
 
-        // === Editar publicación ===
         composable<DashboardRoutes.EditPet> {
             val args = it.toRoute<DashboardRoutes.EditPet>()
             EditPetScreen(
                 petId = args.petId,
-                paddingValues = padding,
                 onNavigateBack = {
                     navController.popBackStack()
                 }
             )
         }
 
-        // === Panel de moderador (solo visible para moderadores) ===
         if (showModeratorPanel) {
             composable<DashboardRoutes.ModeratorPanel> {
                 ModeratorPanelScreen(
-                    paddingValues = padding,
                     onNavigateBack = {
                         navController.popBackStack()
                     }

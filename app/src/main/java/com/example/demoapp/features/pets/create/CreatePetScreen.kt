@@ -1,5 +1,6 @@
 package com.example.demoapp.features.pets.create
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,7 +17,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -25,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -39,7 +43,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,6 +60,9 @@ fun CreatePetScreen(
     onNavigateBack: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val customGreenDark = Color(0xFF003913)
+    val customGreenLight = Color(0xFFAFD8C0)
 
     LaunchedEffect(viewModel.createResult) {
         viewModel.createResult?.let { success ->
@@ -70,15 +79,16 @@ fun CreatePetScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.create_pet_title)) },
+                title = { Text(stringResource(R.string.create_pet_title), color = customGreenDark, fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = customGreenLight
                 ),
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back_button_description)
+                            contentDescription = stringResource(R.string.back_button_description),
+                            tint = customGreenDark
                         )
                     }
                 }
@@ -88,18 +98,27 @@ fun CreatePetScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.White)
                 .padding(innerPadding)
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            val textFieldColors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = customGreenDark,
+                focusedLabelColor = customGreenDark,
+                unfocusedContainerColor = Color.White,
+                focusedContainerColor = Color.White
+            )
+
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 value = viewModel.title.value,
                 onValueChange = { viewModel.title.onChange(it) },
                 label = { Text(stringResource(R.string.pet_form_title_publication_label)) },
                 isError = viewModel.title.error != null,
-                supportingText = viewModel.title.error?.let { error -> { Text(text = error) } }
+                supportingText = viewModel.title.error?.let { error -> { Text(text = error) } },
+                colors = textFieldColors
             )
 
             OutlinedTextField(
@@ -110,7 +129,8 @@ fun CreatePetScreen(
                 minLines = 3,
                 maxLines = 5,
                 isError = viewModel.description.error != null,
-                supportingText = viewModel.description.error?.let { error -> { Text(text = error) } }
+                supportingText = viewModel.description.error?.let { error -> { Text(text = error) } },
+                colors = textFieldColors
             )
 
             var expandedCategory by remember { mutableStateOf(false) }
@@ -124,7 +144,8 @@ fun CreatePetScreen(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text(stringResource(R.string.pet_form_category_label)) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) }
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory) },
+                    colors = textFieldColors
                 )
                 ExposedDropdownMenu(
                     expanded = expandedCategory,
@@ -148,7 +169,8 @@ fun CreatePetScreen(
                 onValueChange = { viewModel.animalType.onChange(it) },
                 label = { Text(stringResource(R.string.pet_form_animal_type_label)) },
                 isError = viewModel.animalType.error != null,
-                supportingText = viewModel.animalType.error?.let { error -> { Text(text = error) } }
+                supportingText = viewModel.animalType.error?.let { error -> { Text(text = error) } },
+                colors = textFieldColors
             )
 
             var expandedSize by remember { mutableStateOf(false) }
@@ -169,7 +191,8 @@ fun CreatePetScreen(
                     label = { Text(stringResource(R.string.pet_form_size_label)) },
                     isError = viewModel.size.error != null,
                     supportingText = viewModel.size.error?.let { error -> { Text(text = error) } },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSize) }
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedSize) },
+                    colors = textFieldColors
                 )
                 ExposedDropdownMenu(
                     expanded = expandedSize,
@@ -190,9 +213,10 @@ fun CreatePetScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(
                     checked = viewModel.hasVaccines,
-                    onCheckedChange = { viewModel.onVaccinesChanged(it) }
+                    onCheckedChange = { viewModel.onVaccinesChanged(it) },
+                    colors = CheckboxDefaults.colors(checkedColor = customGreenDark)
                 )
-                Text(stringResource(R.string.pet_form_has_vaccines_label), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.pet_form_has_vaccines_label), style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
             }
 
             OutlinedTextField(
@@ -202,7 +226,8 @@ fun CreatePetScreen(
                 label = { Text(stringResource(R.string.pet_form_photo_url_label)) },
                 isError = viewModel.photoUrl.error != null,
                 supportingText = viewModel.photoUrl.error?.let { error -> { Text(text = error) } },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                colors = textFieldColors
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -210,10 +235,12 @@ fun CreatePetScreen(
             Button(
                 onClick = { viewModel.createPet() },
                 enabled = viewModel.isFormValid,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = customGreenLight, contentColor = customGreenDark),
+                shape = MaterialTheme.shapes.medium
             ) {
-                Icon(imageVector = Icons.Default.Create, contentDescription = stringResource(R.string.create_pet_title))
-                Text(stringResource(R.string.pet_form_publish_button), modifier = Modifier.padding(start = 4.dp))
+                Icon(imageVector = Icons.Default.Create, contentDescription = null)
+                Text(stringResource(R.string.pet_form_publish_button), fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

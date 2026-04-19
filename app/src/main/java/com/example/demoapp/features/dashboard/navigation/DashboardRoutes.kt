@@ -2,30 +2,30 @@ package com.example.demoapp.features.dashboard.navigation
 
 import kotlinx.serialization.Serializable
 
-/**
- * Rutas de navegación internas del dashboard.
- * Estas rutas se usan dentro del NavHost anidado de la sección de usuarios/moderadores.
- * Son independientes de las rutas principales (MainRoutes).
- */
+@Serializable
 sealed class DashboardRoutes {
 
-    // === Rutas comunes (usuarios y moderadores) ===
     @Serializable
-    data object PetFeed : DashboardRoutes()       // Feed de mascotas
+    data object PetFeed : DashboardRoutes()
 
     @Serializable
-    data object Profile : DashboardRoutes()       // Perfil del usuario
+    data object Profile : DashboardRoutes()
+    
+    @Serializable
+    data object Map : DashboardRoutes()
 
     @Serializable
-    data class PetDetail(val petId: String) : DashboardRoutes()  // Detalle de mascota
+    data object Notifications : DashboardRoutes() // NUEVA RUTA
 
     @Serializable
-    data class EditPet(val petId: String) : DashboardRoutes()    // Editar mascota
+    data class PetDetail(val petId: String) : DashboardRoutes()
 
     @Serializable
-    data object CreatePet : DashboardRoutes()     // Crear publicación
+    data class EditPet(val petId: String) : DashboardRoutes()
 
-    // === Ruta exclusiva del moderador ===
     @Serializable
-    data object ModeratorPanel : DashboardRoutes() // Panel de moderación
+    data object CreatePet : DashboardRoutes()
+
+    @Serializable
+    data object ModeratorPanel : DashboardRoutes()
 }

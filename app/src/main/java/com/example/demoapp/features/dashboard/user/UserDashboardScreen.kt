@@ -12,6 +12,7 @@ import com.example.demoapp.R
 import com.example.demoapp.features.dashboard.component.BottomNavigationBar
 import com.example.demoapp.features.dashboard.component.LovelyPetsTopAppBar
 import com.example.demoapp.features.dashboard.component.userDestinations
+import com.example.demoapp.features.dashboard.navigation.DashboardRoutes
 import com.example.demoapp.features.dashboard.navigation.UserNavigation
 
 @Composable
@@ -22,7 +23,6 @@ fun UserDashboardScreen(
     var title by remember { mutableStateOf("") }
     val defaultTitle = stringResource(R.string.dashboard_title)
 
-    // Inicializar título con el string resource
     if (title.isEmpty()) {
         title = defaultTitle
     }
@@ -31,7 +31,9 @@ fun UserDashboardScreen(
         topBar = {
             LovelyPetsTopAppBar(
                 title = title,
-                logout = onLogout
+                onNotificationsClick = {
+                    navController.navigate(DashboardRoutes.Notifications)
+                }
             )
         },
         bottomBar = {
@@ -45,7 +47,8 @@ fun UserDashboardScreen(
         UserNavigation(
             navController = navController,
             padding = padding,
-            showModeratorPanel = false
+            showModeratorPanel = false,
+            onLogout = onLogout
         )
     }
 }

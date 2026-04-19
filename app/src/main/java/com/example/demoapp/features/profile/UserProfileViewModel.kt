@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.example.demoapp.R
 import com.example.demoapp.core.utils.ResourceProvider
 import com.example.demoapp.core.utils.ValidatedField
+import com.example.demoapp.domain.model.Pet
 import com.example.demoapp.domain.model.PetStatus
 import com.example.demoapp.domain.model.User
 import com.example.demoapp.domain.repository.PetRepository
@@ -14,11 +15,6 @@ import com.example.demoapp.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
-/**
- * ViewModel para el perfil del usuario.
- * Maneja la edición de datos, estadísticas y eliminación de cuenta.
- * Usa ResourceProvider para los mensajes de validación.
- */
 @HiltViewModel
 class UserProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
@@ -34,7 +30,7 @@ class UserProfileViewModel @Inject constructor(
         }
     }
 
-    val address = ValidatedField("") { _ -> null } // Dirección es opcional
+    val address = ValidatedField("") { _ -> null }
 
     val phone = ValidatedField("") { value ->
         when {
@@ -67,6 +63,12 @@ class UserProfileViewModel @Inject constructor(
         address.onChange(user.address)
     }
 
+    // Obtener las publicaciones del usuario actual
+    fun getUserPets(): List<Pet> {
+        val userId = userRepository.currentUser.value?.id ?: return emptyList()
+        return petRepository.getByOwner(userId)
+    }
+
     fun getActivePetsCount(): Int {
         val userId = userRepository.currentUser.value?.id ?: return 0
         return petRepository.getByOwner(userId).count { it.status == PetStatus.VERIFICADO }
@@ -80,6 +82,10 @@ class UserProfileViewModel @Inject constructor(
     fun getPendingPetsCount(): Int {
         val userId = userRepository.currentUser.value?.id ?: return 0
         return petRepository.getByOwner(userId).count { it.status == PetStatus.PENDIENTE }
+    }
+
+    fun deletePet(petId: String) {
+        petRepository.delete(petId)
     }
 
     fun updateProfile() {

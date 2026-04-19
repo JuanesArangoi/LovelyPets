@@ -12,6 +12,7 @@ import com.example.demoapp.R
 import com.example.demoapp.features.dashboard.component.BottomNavigationBar
 import com.example.demoapp.features.dashboard.component.LovelyPetsTopAppBar
 import com.example.demoapp.features.dashboard.component.adminDestinations
+import com.example.demoapp.features.dashboard.navigation.DashboardRoutes
 import com.example.demoapp.features.dashboard.navigation.UserNavigation
 
 @Composable
@@ -30,7 +31,9 @@ fun AdminDashboardScreen(
         topBar = {
             LovelyPetsTopAppBar(
                 title = title,
-                logout = onLogout
+                onNotificationsClick = {
+                    navController.navigate(DashboardRoutes.Notifications)
+                }
             )
         },
         bottomBar = {
@@ -44,7 +47,8 @@ fun AdminDashboardScreen(
         UserNavigation(
             navController = navController,
             padding = padding,
-            showModeratorPanel = true
+            showModeratorPanel = true,
+            onLogout = onLogout
         )
     }
 }

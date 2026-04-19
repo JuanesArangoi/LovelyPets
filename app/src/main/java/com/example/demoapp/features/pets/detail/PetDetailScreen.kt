@@ -52,6 +52,8 @@ import coil.request.ImageRequest
 import com.example.demoapp.R
 import com.example.demoapp.domain.model.Comment
 import com.example.demoapp.domain.model.PetStatus
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
 
 /**
  * Pantalla de detalle de una publicación de mascota.
@@ -127,6 +129,7 @@ fun PetDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
+                    .background(androidx.compose.ui.graphics.Color.White)
             ) {
                 // Imagen
                 item {
@@ -247,14 +250,15 @@ fun PetDetailScreen(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.pet_detail_me_interesa, pet.votes))
+                                Text("${pet.votes}")
                             }
 
                             // Botón Compartir
                             Button(
                                 onClick = { viewModel.sharePet(context) },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiary
+                                    containerColor = Color(0xFF003913),
+                                    contentColor = Color.White
                                 )
                             ) {
                                 Icon(
@@ -270,7 +274,8 @@ fun PetDetailScreen(
                                 Button(
                                     onClick = { viewModel.resolvePet() },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.secondary
+                                        containerColor = Color(0xFFAFD8C0),
+                                        contentColor = Color(0xFF003913)
                                     )
                                 ) {
                                     Icon(
@@ -352,7 +357,7 @@ fun CommentItem(comment: Comment) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = Color(0xFFA8C3B0)
         ),
         shape = RoundedCornerShape(8.dp)
     ) {
