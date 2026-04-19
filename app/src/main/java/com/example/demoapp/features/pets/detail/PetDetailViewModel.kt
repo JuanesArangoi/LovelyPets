@@ -43,6 +43,15 @@ class PetDetailViewModel @Inject constructor(
         private set
 
     /**
+     * Indica si el usuario actual es el dueño de la publicación.
+     */
+    val isOwner: Boolean
+        get() {
+            val userId = userRepository.currentUser.value?.id ?: return false
+            return pet?.ownerId == userId
+        }
+
+    /**
      * Carga los datos de una mascota por su ID e incrementa el contador de visualizaciones.
      */
     fun loadPet(petId: String) {

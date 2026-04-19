@@ -28,6 +28,7 @@ fun UserNavigation(
     ) {
         composable<DashboardRoutes.PetFeed> {
             PetListScreen(
+                paddingValues = padding,
                 onNavigateToPetDetail = { petId ->
                     navController.navigate(DashboardRoutes.PetDetail(petId))
                 },
@@ -57,7 +58,13 @@ fun UserNavigation(
                 onAccountDeleted = {
                     onLogout()
                 },
-                onLogout = onLogout
+                onLogout = onLogout,
+                onNavigateToEdit = { petId ->
+                    navController.navigate(DashboardRoutes.EditPet(petId))
+                },
+                onNavigateToPetDetail = { petId ->
+                    navController.navigate(DashboardRoutes.PetDetail(petId))
+                }
             )
         }
 

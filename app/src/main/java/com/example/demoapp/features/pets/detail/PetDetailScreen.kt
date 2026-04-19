@@ -135,27 +135,29 @@ fun PetDetailScreen(
                 },
                 actions = {
                     if (pet != null) {
-                        // Botón Compartir
+                        // Botón Compartir (visible para todos)
                         IconButton(onClick = { viewModel.sharePet(context) }) {
                             Icon(
                                 imageVector = Icons.Default.Share,
                                 contentDescription = stringResource(R.string.pet_detail_share_description)
                             )
                         }
-                        // Botón Editar
-                        IconButton(onClick = { onNavigateToEdit(petId) }) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = stringResource(R.string.pet_detail_edit_description)
-                            )
-                        }
-                        // Botón Eliminar
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = stringResource(R.string.pet_detail_delete_description),
-                                tint = Color.Red
-                            )
+                        // Botón Editar (solo para el dueño)
+                        if (viewModel.isOwner) {
+                            IconButton(onClick = { onNavigateToEdit(petId) }) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = stringResource(R.string.pet_detail_edit_description)
+                                )
+                            }
+                            // Botón Eliminar (solo para el dueño)
+                            IconButton(onClick = { showDeleteDialog = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = stringResource(R.string.pet_detail_delete_description),
+                                    tint = Color.Red
+                                )
+                            }
                         }
                     }
                 }
@@ -337,24 +339,26 @@ fun PetDetailScreen(
                             }
                         }
 
-                        // Botón Eliminar publicación
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(
-                            onClick = { showDeleteDialog = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.White,
-                                contentColor = Color.Red
-                            ),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = stringResource(R.string.pet_detail_delete_description),
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.pet_detail_delete_button))
+                        // Botón Eliminar publicación (solo para el dueño)
+                        if (viewModel.isOwner) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = { showDeleteDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White,
+                                    contentColor = Color.Red
+                                ),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = stringResource(R.string.pet_detail_delete_description),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.pet_detail_delete_button))
+                            }
                         }
                     }
                 }

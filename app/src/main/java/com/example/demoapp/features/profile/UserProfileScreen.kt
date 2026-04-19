@@ -2,6 +2,7 @@ package com.example.demoapp.features.profile
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,11 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -61,10 +64,13 @@ fun UserProfileScreen(
     paddingValues: PaddingValues = PaddingValues(),
     onNavigateBack: () -> Unit,
     onAccountDeleted: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToEdit: (String) -> Unit = {},
+    onNavigateToPetDetail: (String) -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeletePetDialog by remember { mutableStateOf<String?>(null) }
 
     val currentUser = viewModel.getCurrentUser()
 
@@ -151,6 +157,79 @@ fun UserProfileScreen(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 StatCardItem(Modifier.weight(1f), stringResource(R.string.pet_card_status_label), viewModel.getActivePetsCount().toString(), customBlueLight, Color(0xFF1976D2))
                 StatCardItem(Modifier.weight(1f), stringResource(R.string.pet_detail_resolved), viewModel.getResolvedPetsCount().toString(), customGreenLight, customGreenDark)
+            }
+
+            // ===== MIS PUBLICACIONES =====
+            Text("📋 Mis publicaciones", fontWeight = FontWeight.Bold, color = customGreenDark)
+
+            val userPets = viewModel.getUserPets()
+            if (userPets.isEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = customBlueLight)
+                ) {
+                    Text(
+                        "No tienes publicaciones aún",
+                        modifier = Modifier.padding(16.dp),
+                        color = Color.Gray
+                    )
+                }
+            } else {
+                userPets.forEach { pet ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onNavigateToPetDetail(pet.id) },
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(pet.title, fontWeight = FontWeight.Bold, color = customGreenDark,
+                                    maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                Text("${pet.category.label} • ${pet.status.label}",
+                                    style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                            }
+                            Row {
+                                IconButton(onClick = { onNavigateToEdit(pet.id) }) {
+                                    Icon(Icons.Default.Edit, "Editar", tint = customGreenDark, modifier = Modifier.size(20.dp))
+                                }
+                                IconButton(onClick = { showDeletePetDialog = pet.id }) {
+                                    Icon(Icons.Default.Delete, "Eliminar", tint = Color.Red, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Diálogo de confirmación de eliminar publicación
+            showDeletePetDialog?.let { petId ->
+                AlertDialog(
+                    onDismissRequest = { showDeletePetDialog = null },
+                    title = { Text(stringResource(R.string.pet_detail_delete_confirm_title), fontWeight = FontWeight.Bold) },
+                    text = { Text(stringResource(R.string.pet_detail_delete_confirm_message)) },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            viewModel.deletePet(petId)
+                            showDeletePetDialog = null
+                        }) {
+                            Text(stringResource(R.string.pet_detail_delete_button), color = Color.Red, fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeletePetDialog = null }) {
+                            Text(stringResource(R.string.profile_cancel_button), color = customGreenDark)
+                        }
+                    }
+                )
             }
 
             val fieldColors = OutlinedTextFieldDefaults.colors(

@@ -49,6 +49,7 @@ import com.example.demoapp.domain.model.PetCategory
 @Composable
 fun PetListScreen(
     viewModel: PetListViewModel = hiltViewModel(),
+    paddingValues: PaddingValues = PaddingValues(),
     onNavigateToPetDetail: (String) -> Unit,
     onNavigateToCreatePet: () -> Unit = {}
 ) {
@@ -61,6 +62,7 @@ fun PetListScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(paddingValues)
             .background(Color.White)
     ) {
         // Filtros por categoría usando chips horizontales
