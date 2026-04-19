@@ -38,6 +38,10 @@ class PetDetailViewModel @Inject constructor(
     var commentText by mutableStateOf("")
         private set
 
+    // Resultado de la eliminación
+    var deleteResult by mutableStateOf<Boolean?>(null)
+        private set
+
     /**
      * Carga los datos de una mascota por su ID e incrementa el contador de visualizaciones.
      */
@@ -98,6 +102,16 @@ class PetDetailViewModel @Inject constructor(
         petRepository.resolve(petId)
         pet = petRepository.findById(petId) // Recargar para actualizar estado
     }
+
+    /**
+     * Elimina la publicación actual.
+     */
+    fun deletePet() {
+        val petId = pet?.id ?: return
+        deleteResult = petRepository.delete(petId)
+    }
+
+    fun resetDeleteResult() { deleteResult = null }
 
     /**
      * Comparte la publicación usando el sistema de compartir de Android.

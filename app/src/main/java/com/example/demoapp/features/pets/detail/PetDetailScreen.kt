@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
@@ -38,6 +39,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +57,8 @@ import coil.request.ImageRequest
 import com.example.demoapp.R
 import com.example.demoapp.domain.model.Comment
 import com.example.demoapp.domain.model.PetStatus
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 
@@ -69,14 +76,47 @@ fun PetDetailScreen(
     onNavigateToEdit: (String) -> Unit
 ) {
     val context = LocalContext.current
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     // Cargar la mascota al entrar (también incrementa viewCount)
     LaunchedEffect(petId) {
         viewModel.loadPet(petId)
     }
 
+    // Manejar resultado de eliminación
+    LaunchedEffect(viewModel.deleteResult) {
+        viewModel.deleteResult?.let { success ->
+            if (success) {
+                onNavigateBack()
+            }
+            viewModel.resetDeleteResult()
+        }
+    }
+
     val pet      = viewModel.pet
     val comments = viewModel.getComments()
+
+    // Diálogo de confirmación de eliminación
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.pet_detail_delete_confirm_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.pet_detail_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deletePet()
+                    showDeleteDialog = false
+                }) {
+                    Text(stringResource(R.string.pet_detail_delete_button), color = Color.Red, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.profile_cancel_button))
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -107,6 +147,14 @@ fun PetDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = stringResource(R.string.pet_detail_edit_description)
+                            )
+                        }
+                        // Botón Eliminar
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.pet_detail_delete_description),
+                                tint = Color.Red
                             )
                         }
                     }
@@ -287,6 +335,26 @@ fun PetDetailScreen(
                                     Text(stringResource(R.string.pet_detail_resolved))
                                 }
                             }
+                        }
+
+                        // Botón Eliminar publicación
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = { showDeleteDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.Red
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.pet_detail_delete_description),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.pet_detail_delete_button))
                         }
                     }
                 }

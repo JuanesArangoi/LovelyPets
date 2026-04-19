@@ -78,6 +78,12 @@
     <string name="pet_share_subject">Publicación en LovelyPets</string>
     <string name="pet_share_text">¡Mira esta publicación de mascota en LovelyPets!\n\n%s\n\n%s</string>
 
+    <!-- ===== PET DELETE ===== -->
+    <string name="pet_detail_delete_description">Eliminar publicación</string>
+    <string name="pet_detail_delete_confirm_title">Eliminar publicación</string>
+    <string name="pet_detail_delete_confirm_message">¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.</string>
+    <string name="pet_detail_delete_button">Eliminar</string>
+
     <!-- ===== CREATE / EDIT PET SCREEN ===== -->
     <string name="create_pet_title">Nueva Publicación</string>
     <string name="edit_pet_title">Editar Publicación</string>
