@@ -39,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -72,6 +73,7 @@ fun EditPetScreen(
     }
 
     Scaffold(
+        containerColor = Color.White,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
@@ -94,7 +96,12 @@ fun EditPetScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp,
+                    bottom = 16.dp + paddingValues.calculateBottomPadding()
+                )
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -124,7 +131,9 @@ fun EditPetScreen(
                 onExpandedChange = { expandedCategory = it }
             ) {
                 OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
                     value = viewModel.selectedCategory.label,
                     onValueChange = {},
                     readOnly = true,
@@ -174,7 +183,9 @@ fun EditPetScreen(
                 onExpandedChange = { expandedSize = it }
             ) {
                 OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(),
                     value = viewModel.size.value,
                     onValueChange = {},
                     readOnly = true,
@@ -234,7 +245,7 @@ fun EditPetScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }

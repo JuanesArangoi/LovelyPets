@@ -123,7 +123,10 @@ fun UserProfileScreen(
                 .fillMaxSize()
                 .background(Color.White)
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp,
+                    bottom = 16.dp + paddingValues.calculateBottomPadding())
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -291,6 +294,8 @@ fun UserProfileScreen(
         }
     }
 }
+
+
 
 @Composable
 fun StatCardItem(modifier: Modifier, label: String, value: String, bgColor: Color, txtColor: Color) {

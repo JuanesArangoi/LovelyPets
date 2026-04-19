@@ -28,7 +28,7 @@ fun UserNavigation(
     ) {
         composable<DashboardRoutes.PetFeed> {
             PetListScreen(
-                paddingValues = padding,
+                paddingValues = padding, // AÑADIDO: Pasamos el padding para que no se corte al final
                 onNavigateToPetDetail = { petId ->
                     navController.navigate(DashboardRoutes.PetDetail(petId))
                 },
@@ -52,6 +52,7 @@ fun UserNavigation(
 
         composable<DashboardRoutes.Profile> {
             UserProfileScreen(
+                paddingValues = padding,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -59,12 +60,11 @@ fun UserNavigation(
                     onLogout()
                 },
                 onLogout = onLogout,
+
                 onNavigateToEdit = { petId ->
                     navController.navigate(DashboardRoutes.EditPet(petId))
-                },
-                onNavigateToPetDetail = { petId ->
-                    navController.navigate(DashboardRoutes.PetDetail(petId))
                 }
+
             )
         }
 
@@ -72,6 +72,7 @@ fun UserNavigation(
             val args = it.toRoute<DashboardRoutes.PetDetail>()
             PetDetailScreen(
                 petId = args.petId,
+                paddingValues = padding,
                 onNavigateBack = {
                     navController.popBackStack()
                 },
@@ -83,6 +84,7 @@ fun UserNavigation(
 
         composable<DashboardRoutes.CreatePet> {
             CreatePetScreen(
+                paddingValues = padding,
                 onNavigateBack = {
                     navController.popBackStack()
                 }
@@ -93,6 +95,7 @@ fun UserNavigation(
             val args = it.toRoute<DashboardRoutes.EditPet>()
             EditPetScreen(
                 petId = args.petId,
+                paddingValues = padding,
                 onNavigateBack = {
                     navController.popBackStack()
                 }
@@ -102,6 +105,7 @@ fun UserNavigation(
         if (showModeratorPanel) {
             composable<DashboardRoutes.ModeratorPanel> {
                 ModeratorPanelScreen(
+                    paddingValues = padding,
                     onNavigateBack = {
                         navController.popBackStack()
                     }

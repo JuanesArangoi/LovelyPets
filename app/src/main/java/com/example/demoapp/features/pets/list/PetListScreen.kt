@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -54,49 +53,71 @@ fun PetListScreen(
     onNavigateToCreatePet: () -> Unit = {}
 ) {
     val pets = viewModel.getPets()
-
     val customGreenDark = Color(0xFF003913)
-    val customGreenLight = Color(0xFFAFD8C0)
     val customBlueLight = Color(0xFFE3F2FD)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(paddingValues)
             .background(Color.White)
+            .padding(top = paddingValues.calculateTopPadding()) // Solo padding superior inicial
     ) {
-        // Filtros por categoría usando chips horizontales
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // SECCIÓN DE FILTROS FIJA EN LA PARTE SUPERIOR
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         ) {
-            // Chip "Todas"
-            item {
-                FilterChip(
-                    selected = viewModel.selectedCategory == null,
-                    onClick = { viewModel.onCategorySelected(null) },
-                    label = { Text("Todas") }
-                )
-            }
-            items(PetCategory.entries) { category ->
-                FilterChip(
-                    selected = viewModel.selectedCategory == category,
-                    onClick = { viewModel.onCategorySelected(category) },
-                    label = { Text(category.label) }
-                )
+            Text(
+                text = "Filtrar por categoría",
+                modifier = Modifier.padding(horizontal = 16.dp),
+                style = MaterialTheme.typography.labelLarge,
+                color = customGreenDark,
+                fontWeight = FontWeight.Bold
+            )
+
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                item {
+                    CategoryChip(
+                        label = "Todas",
+                        isSelected = viewModel.selectedCategory == null,
+                        onClick = { viewModel.onCategorySelected(null) },
+                        selectedColor = customGreenDark,
+                        selectedTextColor = Color.White
+                    )
+                }
+                items(PetCategory.entries) { category ->
+                    CategoryChip(
+                        label = category.label,
+                        isSelected = viewModel.selectedCategory == category,
+                        onClick = { viewModel.onCategorySelected(category) },
+                        selectedColor = customGreenDark,
+                        selectedTextColor = Color.White
+                    )
+                }
             }
         }
 
-        // LISTA DE PUBLICACIONES
+        // LISTA QUE OCUPA EL ESPACIO RESTANTE
         if (pets.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text("No hay mascotas en esta categoría", color = Color.Gray)
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
+                modifier = Modifier
+                    .weight(1f) // Esto asegura que la lista no empuje el contenido fuera de la pantalla
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = paddingValues.calculateBottomPadding() + 16.dp // Padding extra para no quedar bajo la barra
+                ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(pets) { pet ->
@@ -128,9 +149,16 @@ fun CategoryChip(
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = selectedColor,
             selectedLabelColor = selectedTextColor,
-            containerColor = Color(0xFFFFFFFF)
+            containerColor = Color(0xFFF5F5F5),
+            labelColor = Color(0xFF003913)
         ),
-        border = null
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = isSelected,
+            borderColor = Color.Transparent,
+            selectedBorderColor = selectedColor
+        ),
+        shape = RoundedCornerShape(20.dp)
     )
 }
 
@@ -166,18 +194,18 @@ fun PetCard(
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(pet.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = titleColor)
-                    Card(colors = CardDefaults.cardColors(containerColor = categoryColor)) {
-                        Text(pet.category.label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = Color(0xFF1976D2))
+                    Card(colors = CardDefaults.cardColors(containerColor = categoryColor), shape = RoundedCornerShape(8.dp)) {
+                        Text(pet.category.label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.labelSmall, color = Color(0xFF1976D2), fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(Modifier.height(4.dp))
-                Text(pet.description, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                Spacer(Modifier.height(8.dp))
+                Text(pet.description, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis, color = Color.DarkGray)
+                Spacer(Modifier.height(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Favorite, null, tint = Color.Red, modifier = Modifier.size(18.dp).clickable { onVoteClick() })
-                        Spacer(Modifier.width(4.dp))
-                        Text("${pet.votes}", style = MaterialTheme.typography.bodySmall)
+                        Icon(Icons.Default.Favorite, null, tint = Color.Red, modifier = Modifier.size(20.dp).clickable { onVoteClick() })
+                        Spacer(Modifier.width(6.dp))
+                        Text("${pet.votes}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                     }
                     Text("Por ${pet.ownerName}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                 }

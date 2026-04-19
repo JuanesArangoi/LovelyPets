@@ -179,7 +179,8 @@ fun PetDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(androidx.compose.ui.graphics.Color.White)
+                    .background(androidx.compose.ui.graphics.Color.White),
+                    contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 // Imagen
                 item {
@@ -394,13 +395,14 @@ fun PetDetailScreen(
                             value = viewModel.commentText,
                             onValueChange = { viewModel.onCommentTextChange(it) },
                             label = { Text(stringResource(R.string.pet_detail_comment_placeholder)) },
-                            modifier = Modifier.weight(1f),
-                            maxLines = 3
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        maxLines = 3
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
                             onClick = { viewModel.addComment() },
-                            enabled = viewModel.commentText.isNotBlank()
+                            enabled = viewModel.commentText.isNotBlank(),
+                            modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Send,
@@ -441,7 +443,13 @@ fun CommentItem(comment: Comment) {
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = comment.text, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = comment.text,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.fillMaxWidth()
+                // opcional:
+                // lineHeight = 20.sp
+            )
         }
     }
 }
