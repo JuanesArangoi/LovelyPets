@@ -14,6 +14,8 @@ import com.example.demoapp.features.pets.detail.PetDetailScreen
 import com.example.demoapp.features.pets.edit.EditPetScreen
 import com.example.demoapp.features.pets.list.PetListScreen
 import com.example.demoapp.features.profile.UserProfileScreen
+import com.example.demoapp.features.reports.AdminReportsScreen
+import com.example.demoapp.features.achievements.AchievementsScreen
 
 @Composable
 fun UserNavigation(
@@ -60,11 +62,12 @@ fun UserNavigation(
                     onLogout()
                 },
                 onLogout = onLogout,
-
                 onNavigateToEdit = { petId ->
                     navController.navigate(DashboardRoutes.EditPet(petId))
+                },
+                onNavigateToAchievements = {
+                    navController.navigate(DashboardRoutes.Achievements)
                 }
-
             )
         }
 
@@ -91,6 +94,15 @@ fun UserNavigation(
             )
         }
 
+        composable<DashboardRoutes.Achievements> {
+            AchievementsScreen(
+                paddingValues = padding,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
         composable<DashboardRoutes.EditPet> {
             val args = it.toRoute<DashboardRoutes.EditPet>()
             EditPetScreen(
@@ -109,6 +121,12 @@ fun UserNavigation(
                     onNavigateBack = {
                         navController.popBackStack()
                     }
+                )
+            }
+
+            composable<DashboardRoutes.AdminReports> {
+                AdminReportsScreen(
+                    paddingValues = padding
                 )
             }
         }

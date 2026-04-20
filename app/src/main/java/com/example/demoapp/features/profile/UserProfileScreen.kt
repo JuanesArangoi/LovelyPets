@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -66,7 +67,8 @@ fun UserProfileScreen(
     onAccountDeleted: () -> Unit,
     onLogout: () -> Unit,
     onNavigateToEdit: (String) -> Unit = {},
-    onNavigateToPetDetail: (String) -> Unit = {}
+    onNavigateToPetDetail: (String) -> Unit = {},
+    onNavigateToAchievements: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -160,6 +162,19 @@ fun UserProfileScreen(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 StatCardItem(Modifier.weight(1f), stringResource(R.string.pet_card_status_label), viewModel.getActivePetsCount().toString(), customBlueLight, Color(0xFF1976D2))
                 StatCardItem(Modifier.weight(1f), stringResource(R.string.pet_detail_resolved), viewModel.getResolvedPetsCount().toString(), customGreenLight, customGreenDark)
+            }
+
+            // ===== BOTÓN DE LOGROS =====
+            OutlinedButton(
+                onClick = onNavigateToAchievements,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = customGreenDark),
+                border = BorderStroke(1.5.dp, customGreenLight),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Outlined.EmojiEvents, null, modifier = Modifier.size(20.dp), tint = Color(0xFFFFA000))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.achievements_button), fontWeight = FontWeight.Bold)
             }
 
             // ===== MIS PUBLICACIONES =====

@@ -124,6 +124,23 @@
     <string name="moderator_reject_reason_label">Motivo de rechazo</string>
     <string name="moderator_empty">No hay publicaciones pendientes</string>
 
+    <!-- ===== ADMIN REPORTS DASHBOARD ===== -->
+    <string name="reports_title">Reportes</string>
+    <string name="reports_resolved">Resueltos</string>
+    <string name="reports_unresolved">Sin resolver</string>
+    <string name="reports_active">Activas</string>
+    <string name="reports_total">Total</string>
+    <string name="reports_pending">Pendientes</string>
+    <string name="reports_rejected">Rechazadas</string>
+    <string name="reports_recent_title">📋 Publicaciones recientes</string>
+    <string name="reports_no_recent">No hay publicaciones aún</string>
+
+    <!-- ===== ACHIEVEMENTS ===== -->
+    <string name="achievements_title">Mis Logros</string>
+    <string name="achievements_summary">%d de %d logros desbloqueados</string>
+    <string name="achievements_keep_going">¡Sigue participando para desbloquear más!</string>
+    <string name="achievements_button">🏆 Mis logros</string>
+
     <!-- ===== VALIDATION ERRORS – UI Composables ===== -->
     <string name="error_email_empty">El email es obligatorio</string>
     <string name="error_email_invalid">Ingresa un email válido</string>

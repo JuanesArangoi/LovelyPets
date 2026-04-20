@@ -28,4 +28,10 @@ sealed class DashboardRoutes {
 
     @Serializable
     data object ModeratorPanel : DashboardRoutes()
+
+    @Serializable
+    data object AdminReports : DashboardRoutes()
+
+    @Serializable
+    data object Achievements : DashboardRoutes()
 }

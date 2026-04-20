@@ -1,9 +1,11 @@
 package com.example.demoapp.di
 
+import com.example.demoapp.data.repository.AchievementRepositoryImpl
 import com.example.demoapp.data.repository.CommentRepositoryImpl
 import com.example.demoapp.data.repository.NotificationRepositoryImpl
 import com.example.demoapp.data.repository.PetRepositoryImpl
 import com.example.demoapp.data.repository.UserRepositoryImpl
+import com.example.demoapp.domain.repository.AchievementRepository
 import com.example.demoapp.domain.repository.CommentRepository
 import com.example.demoapp.domain.repository.NotificationRepository
 import com.example.demoapp.domain.repository.PetRepository
@@ -45,4 +47,10 @@ abstract class RepositoryModule {
     abstract fun bindNotificationRepository(
         notificationRepositoryImpl: NotificationRepositoryImpl
     ): NotificationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAchievementRepository(
+        achievementRepositoryImpl: AchievementRepositoryImpl
+    ): AchievementRepository
 }
