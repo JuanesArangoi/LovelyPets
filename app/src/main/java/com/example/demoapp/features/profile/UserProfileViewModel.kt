@@ -71,9 +71,10 @@ class UserProfileViewModel @Inject constructor(
 
     fun getActivePetsCount(): Int {
         val userId = userRepository.currentUser.value?.id ?: return 0
-        return petRepository.getByOwner(userId).count { it.status == PetStatus.VERIFICADO }
+        return petRepository.getByOwner(userId).count {
+            it.status != PetStatus.RESUELTO
+        }
     }
-
     fun getResolvedPetsCount(): Int {
         val userId = userRepository.currentUser.value?.id ?: return 0
         return petRepository.getByOwner(userId).count { it.status == PetStatus.RESUELTO }

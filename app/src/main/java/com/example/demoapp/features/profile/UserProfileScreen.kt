@@ -277,7 +277,6 @@ fun UserProfileScreen(
                 Spacer(Modifier.width(8.dp))
                 Text("Cerrar sesión", fontWeight = FontWeight.Bold)
             }
-
             // Botón Eliminar cuenta con fondo blanco
             Button(
                 onClick = { showDeleteDialog = true },
