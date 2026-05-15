@@ -11,10 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
@@ -32,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.demoapp.R
 import com.example.demoapp.domain.model.UserRole
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -55,20 +51,19 @@ fun LoginScreen(
     onRegisterClick: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
     val loginResult by viewModel.loginResult.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     // Definición de colores
     val customGreenDark = Color(0xFF003913)
     val customGreenLight = Color(0xFFAFD8C0)
     val customBlueLight = Color(0xFFE3F2FD)
 
-    LaunchedEffect(loginResult) {
-        loginResult?.let { success ->
-            if (!success) {
-                snackbarHostState.showSnackbar("Credenciales incorrectas")
-                viewModel.resetLoginResult()
-            }
+    LaunchedEffect(loginResult, errorMessage) {
+        if (loginResult == false && errorMessage != null) {
+            snackbarHostState.showSnackbar(errorMessage!!)
+            viewModel.resetLoginResult()
         }
     }
 
@@ -139,15 +134,12 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    coroutineScope.launch {
-                        val result = viewModel.login()
-                        if (result != null) {
-                            viewModel.resetForm()
-                            onSessionStarted(result.first, result.second)
-                        }
+                    viewModel.login { userId, role ->
+                        viewModel.resetForm()
+                        onSessionStarted(userId, role)
                     }
                 },
-                enabled = viewModel.isFormValid,
+                enabled = viewModel.isFormValid && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -157,11 +149,19 @@ fun LoginScreen(
                 ),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(
-                    text = stringResource(R.string.login_button),
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                if (isLoading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = customGreenDark
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.login_button),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

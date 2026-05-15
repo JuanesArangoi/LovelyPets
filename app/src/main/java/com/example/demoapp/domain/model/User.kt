@@ -3,12 +3,12 @@ package com.example.demoapp.domain.model
 /**
  * Entidad de dominio que representa un usuario de la aplicación.
  * Contiene toda la información personal, rol, nivel y puntos del usuario.
+ * Todos los campos tienen valores por defecto para compatibilidad con Firestore.
  */
 data class User(
-    val id: String,                                      // Identificador único del usuario
-    val name: String,                                    // Nombre completo del usuario
-    val email: String,                                   // Correo electrónico del usuario
-    val password: String,                                // Contraseña del usuario
+    var id: String = "",                                 // Identificador único (UID de Firebase Auth)
+    val name: String = "",                               // Nombre completo del usuario
+    val email: String = "",                              // Correo electrónico del usuario
     val phoneNumber: String = "",                        // Número de teléfono (opcional)
     val city: String = "",                               // Ciudad de residencia
     val address: String = "",                            // Dirección del usuario (opcional)

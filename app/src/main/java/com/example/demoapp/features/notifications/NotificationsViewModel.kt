@@ -1,49 +1,46 @@
 package com.example.demoapp.features.notifications
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.demoapp.domain.model.Notification
+import com.example.demoapp.domain.repository.NotificationRepository
+import com.example.demoapp.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NotificationsViewModel @Inject constructor() : ViewModel() {
+class NotificationsViewModel @Inject constructor(
+    private val notificationRepository: NotificationRepository,
+    private val userRepository: UserRepository
+) : ViewModel() {
 
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
     val notifications = _notifications.asStateFlow()
 
     init {
-        loadMockNotifications()
+        loadNotifications()
+        // Observe real-time changes
+        viewModelScope.launch {
+            notificationRepository.notifications.collect {
+                val userId = userRepository.getCurrentUserId() ?: return@collect
+                _notifications.value = notificationRepository.getByUserId(userId)
+            }
+        }
     }
 
-    private fun loadMockNotifications() {
-        // Datos de ejemplo para visualizar la interfaz
-        _notifications.value = listOf(
-            Notification(
-                userId = "1",
-                title = "¡Nueva adopción!",
-                message = "Alguien está interesado en adoptar a Toby.",
-                isRead = false
-            ),
-            Notification(
-                userId = "1",
-                title = "Comentario nuevo",
-                message = "Juan ha comentado en tu publicación de Luna.",
-                isRead = true
-            ),
-            Notification(
-                userId = "1",
-                title = "Mascota verificada",
-                message = "Tu publicación de 'Gato perdido' ha sido aprobada por un moderador.",
-                isRead = false
-            )
-        )
+    private fun loadNotifications() {
+        viewModelScope.launch {
+            val userId = userRepository.getCurrentUserId() ?: return@launch
+            _notifications.value = notificationRepository.getByUserId(userId)
+        }
     }
 
     fun markAsRead(id: String) {
-        _notifications.value = _notifications.value.map {
-            if (it.id == id) it.copy(isRead = true) else it
+        viewModelScope.launch {
+            notificationRepository.markAsRead(id)
         }
     }
 }

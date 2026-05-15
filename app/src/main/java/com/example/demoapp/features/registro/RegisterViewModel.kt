@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.demoapp.R
 import com.example.demoapp.core.utils.ResourceProvider
 import com.example.demoapp.core.utils.ValidatedField
@@ -12,12 +13,15 @@ import com.example.demoapp.domain.model.User
 import com.example.demoapp.domain.model.UserRole
 import com.example.demoapp.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.UUID
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * ViewModel que gestiona el formulario de registro de nuevo usuario.
- * Usa @HiltViewModel para inyectar el UserRepository y ResourceProvider via Hilt.
+ * Ahora usa coroutines para Firebase Auth + Firestore.
  */
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
@@ -27,9 +31,9 @@ class RegisterViewModel @Inject constructor(
 
     val fullName = ValidatedField("") { value ->
         when {
-            value.isEmpty()                   -> resources.getString(R.string.error_name_empty)
-            value.trim().length < 3           -> resources.getString(R.string.error_name_short)
-            !value.trim().contains(" ")       -> resources.getString(R.string.error_name_no_lastname)
+            value.isEmpty() -> resources.getString(R.string.error_name_empty)
+            value.trim().length < 3 -> resources.getString(R.string.error_name_short)
+            !value.trim().contains(" ") -> resources.getString(R.string.error_name_no_lastname)
             else -> null
         }
     }
@@ -44,7 +48,7 @@ class RegisterViewModel @Inject constructor(
 
     val password = ValidatedField("") { value ->
         when {
-            value.isEmpty()  -> resources.getString(R.string.error_password_empty)
+            value.isEmpty() -> resources.getString(R.string.error_password_empty)
             value.length < 6 -> resources.getString(R.string.error_password_short)
             else -> null
         }
@@ -52,7 +56,7 @@ class RegisterViewModel @Inject constructor(
 
     val confirmPassword = ValidatedField("") { value ->
         when {
-            value.isEmpty()        -> resources.getString(R.string.error_confirm_password_empty)
+            value.isEmpty() -> resources.getString(R.string.error_confirm_password_empty)
             value != password.value -> resources.getString(R.string.error_confirm_password_mismatch)
             else -> null
         }
@@ -60,20 +64,26 @@ class RegisterViewModel @Inject constructor(
 
     val phone = ValidatedField("") { value ->
         when {
-            value.isEmpty()                              -> resources.getString(R.string.error_phone_empty)
-            !Patterns.PHONE.matcher(value).matches()    -> resources.getString(R.string.error_phone_invalid)
-            value.length < 7                             -> resources.getString(R.string.error_phone_short)
+            value.isEmpty() -> resources.getString(R.string.error_phone_empty)
+            !Patterns.PHONE.matcher(value).matches() -> resources.getString(R.string.error_phone_invalid)
+            value.length < 7 -> resources.getString(R.string.error_phone_short)
             else -> null
         }
     }
 
     val location = ValidatedField("") { value ->
         when {
-            value.isEmpty()        -> resources.getString(R.string.error_city_empty)
+            value.isEmpty() -> resources.getString(R.string.error_city_empty)
             value.trim().length < 3 -> resources.getString(R.string.error_city_short)
             else -> null
         }
     }
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     var registerResult by mutableStateOf<Pair<String, UserRole>?>(null)
         private set
@@ -87,27 +97,43 @@ class RegisterViewModel @Inject constructor(
                 && location.isValid
 
     /**
-     * Registra un nuevo usuario. Si el registro es exitoso, devuelve (userId, UserRole)
-     * para que la pantalla pueda guardar la sesión en DataStore.
+     * Registra un nuevo usuario con Firebase Auth y Firestore.
      */
     fun register() {
-        val newUser = User(
-            id          = UUID.randomUUID().toString(),
-            name        = fullName.value,
-            email       = email.value,
-            password    = password.value,
-            phoneNumber = phone.value,
-            city        = location.value
-        )
-        val success = userRepository.register(newUser)
-        registerResult = if (success) Pair(newUser.id, newUser.role) else null
+        _isLoading.value = true
+        _errorMessage.value = null
+
+        viewModelScope.launch {
+            try {
+                val newUser = User(
+                    name = fullName.value,
+                    email = email.value,
+                    phoneNumber = phone.value,
+                    city = location.value
+                )
+                userRepository.save(newUser, password.value)
+
+                // Obtener el ID asignado por Firebase Auth
+                val userId = userRepository.getCurrentUserId() ?: throw Exception("Error al obtener usuario")
+                registerResult = Pair(userId, UserRole.USUARIO)
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Error al registrar"
+                registerResult = null
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
-    fun resetRegisterResult() { registerResult = null }
+    fun resetRegisterResult() {
+        registerResult = null
+        _errorMessage.value = null
+    }
 
     fun resetForm() {
         fullName.reset(); email.reset(); password.reset()
         confirmPassword.reset(); phone.reset(); location.reset()
         registerResult = null
+        _errorMessage.value = null
     }
 }

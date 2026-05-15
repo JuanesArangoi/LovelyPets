@@ -34,4 +34,7 @@ sealed class DashboardRoutes {
 
     @Serializable
     data object Achievements : DashboardRoutes()
+
+    @Serializable
+    data object AiChat : DashboardRoutes()
 }

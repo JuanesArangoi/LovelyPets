@@ -1,13 +1,10 @@
 package com.example.demoapp.features.login
 
 import android.util.Patterns
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.demoapp.core.utils.ResourceProvider
 import com.example.demoapp.core.utils.ValidatedField
-import com.example.demoapp.data.datastore.SessionDataStore
 import com.example.demoapp.domain.model.UserRole
 import com.example.demoapp.domain.repository.UserRepository
 import com.example.demoapp.R
@@ -15,27 +12,29 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * ViewModel que gestiona el estado del formulario de inicio de sesión.
- * Usa @HiltViewModel para inyectar el UserRepository, SessionDataStore y ResourceProvider via Hilt.
+ * Ahora usa coroutines para las operaciones asíncronas de Firebase Auth.
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val sessionDataStore: SessionDataStore,
     private val resources: ResourceProvider
 ) : ViewModel() {
 
-    // Resultado del login: null=sin resultado, true=exitoso, false=fallido
     private val _loginResult = MutableStateFlow<Boolean?>(null)
     val loginResult: StateFlow<Boolean?> = _loginResult.asStateFlow()
 
-    // Usuario logueado (para obtener su ID y rol después del login)
-    val currentUser = userRepository.currentUser
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Campo de email con validación usando ResourceProvider
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    // Campo de email con validación
     val email = ValidatedField("") { value ->
         when {
             value.isEmpty() -> resources.getString(R.string.error_email_empty)
@@ -44,7 +43,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    // Campo de contraseña con validación usando ResourceProvider
+    // Campo de contraseña con validación
     val password = ValidatedField("") { value ->
         when {
             value.isEmpty() -> resources.getString(R.string.error_password_empty)
@@ -57,22 +56,41 @@ class LoginViewModel @Inject constructor(
         get() = email.isValid && password.isValid
 
     /**
-     * Intenta iniciar sesión. Si es exitoso, guarda la sesión en DataStore.
-     * La UI reacciona al sessionFlow de DataStore, cambiando la navegación automáticamente.
+     * Intenta iniciar sesión con Firebase Auth.
+     * Retorna el par (userId, role) si es exitoso.
      */
-    suspend fun login(): Pair<String, UserRole>? {
-        val user = userRepository.login(email.value, password.value)
-        _loginResult.value = user != null
-        return user?.let { Pair(it.id, it.role) }
+    fun login(onSuccess: (String, UserRole) -> Unit) {
+        _isLoading.value = true
+        _errorMessage.value = null
+
+        viewModelScope.launch {
+            try {
+                val user = userRepository.login(email.value, password.value)
+                if (user != null) {
+                    _loginResult.value = true
+                    onSuccess(user.id, user.role)
+                } else {
+                    _loginResult.value = false
+                    _errorMessage.value = "Credenciales incorrectas"
+                }
+            } catch (e: Exception) {
+                _loginResult.value = false
+                _errorMessage.value = e.message ?: "Error al iniciar sesión"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     fun resetLoginResult() {
         _loginResult.value = null
+        _errorMessage.value = null
     }
 
     fun resetForm() {
         email.reset()
         password.reset()
         _loginResult.value = null
+        _errorMessage.value = null
     }
 }

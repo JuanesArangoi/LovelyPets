@@ -1,11 +1,15 @@
 package com.example.demoapp.di
 
 import com.example.demoapp.data.repository.AchievementRepositoryImpl
+import com.example.demoapp.data.repository.AiRepositoryImpl
+import com.example.demoapp.data.repository.CloudinaryRepositoryImpl
 import com.example.demoapp.data.repository.CommentRepositoryImpl
 import com.example.demoapp.data.repository.NotificationRepositoryImpl
 import com.example.demoapp.data.repository.PetRepositoryImpl
 import com.example.demoapp.data.repository.UserRepositoryImpl
 import com.example.demoapp.domain.repository.AchievementRepository
+import com.example.demoapp.domain.repository.AiRepository
+import com.example.demoapp.domain.repository.CloudinaryRepository
 import com.example.demoapp.domain.repository.CommentRepository
 import com.example.demoapp.domain.repository.NotificationRepository
 import com.example.demoapp.domain.repository.PetRepository
@@ -16,41 +20,28 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/**
- * Módulo de Hilt para la inyección de dependencias de los repositorios.
- * Vincula cada interfaz de repositorio con su implementación concreta.
- */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
-    @Binds
-    @Singleton
-    abstract fun bindUserRepository(
-        userRepositoryImpl: UserRepositoryImpl
-    ): UserRepository
+    @Binds @Singleton
+    abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindPetRepository(
-        petRepositoryImpl: PetRepositoryImpl
-    ): PetRepository
+    @Binds @Singleton
+    abstract fun bindPetRepository(impl: PetRepositoryImpl): PetRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindCommentRepository(
-        commentRepositoryImpl: CommentRepositoryImpl
-    ): CommentRepository
+    @Binds @Singleton
+    abstract fun bindCommentRepository(impl: CommentRepositoryImpl): CommentRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindNotificationRepository(
-        notificationRepositoryImpl: NotificationRepositoryImpl
-    ): NotificationRepository
+    @Binds @Singleton
+    abstract fun bindNotificationRepository(impl: NotificationRepositoryImpl): NotificationRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindAchievementRepository(
-        achievementRepositoryImpl: AchievementRepositoryImpl
-    ): AchievementRepository
+    @Binds @Singleton
+    abstract fun bindAchievementRepository(impl: AchievementRepositoryImpl): AchievementRepository
+
+    @Binds @Singleton
+    abstract fun bindCloudinaryRepository(impl: CloudinaryRepositoryImpl): CloudinaryRepository
+
+    @Binds @Singleton
+    abstract fun bindAiRepository(impl: AiRepositoryImpl): AiRepository
 }

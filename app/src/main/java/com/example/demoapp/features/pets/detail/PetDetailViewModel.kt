@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.demoapp.R
 import com.example.demoapp.core.utils.ResourceProvider
 import com.example.demoapp.domain.model.Comment
@@ -14,13 +15,12 @@ import com.example.demoapp.domain.repository.CommentRepository
 import com.example.demoapp.domain.repository.PetRepository
 import com.example.demoapp.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.UUID
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
  * ViewModel para el detalle de una publicación de mascota.
- * Maneja la carga de datos, comentarios, votación, resolución,
- * contador de visualizaciones y compartir via Android Share Sheet.
+ * Migrado a coroutines para compatibilidad con Firestore.
  */
 @HiltViewModel
 class PetDetailViewModel @Inject constructor(
@@ -30,102 +30,83 @@ class PetDetailViewModel @Inject constructor(
     private val resources: ResourceProvider
 ) : ViewModel() {
 
-    // Mascota cargada
     var pet by mutableStateOf<Pet?>(null)
         private set
 
-    // Texto del nuevo comentario
     var commentText by mutableStateOf("")
         private set
 
-    // Resultado de la eliminación
     var deleteResult by mutableStateOf<Boolean?>(null)
         private set
 
-    /**
-     * Indica si el usuario actual es el dueño de la publicación.
-     */
+    var commentsList by mutableStateOf<List<Comment>>(emptyList())
+        private set
+
     val isOwner: Boolean
         get() {
-            val userId = userRepository.currentUser.value?.id ?: return false
+            val userId = userRepository.getCurrentUserId() ?: return false
             return pet?.ownerId == userId
         }
 
-    /**
-     * Carga los datos de una mascota por su ID e incrementa el contador de visualizaciones.
-     */
     fun loadPet(petId: String) {
-        petRepository.incrementViewCount(petId)  // Incrementar cada vez que se abre el detalle
-        pet = petRepository.findById(petId)
+        viewModelScope.launch {
+            petRepository.incrementViewCount(petId)
+            pet = petRepository.findById(petId)
+            commentsList = commentRepository.getByPetId(petId)
+        }
     }
 
-    /**
-     * Obtiene los comentarios de la publicación actual.
-     */
-    fun getComments(): List<Comment> {
-        val petId = pet?.id ?: return emptyList()
-        return commentRepository.getByPetId(petId)
-    }
+    fun getComments(): List<Comment> = commentsList
 
-    /**
-     * Actualiza el texto del nuevo comentario.
-     */
     fun onCommentTextChange(text: String) {
         commentText = text
     }
 
-    /**
-     * Agrega un nuevo comentario a la publicación.
-     */
     fun addComment() {
         val currentPet = pet ?: return
-        val currentUser = userRepository.currentUser.value ?: return
+        val userId = userRepository.getCurrentUserId() ?: return
         if (commentText.isBlank()) return
 
-        val comment = Comment(
-            id         = UUID.randomUUID().toString(),
-            petId      = currentPet.id,
-            authorId   = currentUser.id,
-            authorName = currentUser.name,
-            text       = commentText
-        )
-        commentRepository.add(comment)
-        commentText = ""
+        viewModelScope.launch {
+            val user = userRepository.findById(userId)
+            val comment = Comment(
+                petId = currentPet.id,
+                authorId = userId,
+                authorName = user?.name ?: "Usuario",
+                text = commentText
+            )
+            commentRepository.add(comment)
+            commentText = ""
+            commentsList = commentRepository.getByPetId(currentPet.id)
+        }
     }
 
-    /**
-     * Vota por la publicación.
-     */
     fun votePet() {
-        val petId  = pet?.id ?: return
-        val userId = userRepository.currentUser.value?.id ?: return
-        petRepository.vote(petId, userId)
-        pet = petRepository.findById(petId) // Recargar para actualizar votos
+        val petId = pet?.id ?: return
+        val userId = userRepository.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            petRepository.vote(petId, userId)
+            pet = petRepository.findById(petId)
+        }
     }
 
-    /**
-     * Marca la publicación como resuelta.
-     */
     fun resolvePet() {
         val petId = pet?.id ?: return
-        petRepository.resolve(petId)
-        pet = petRepository.findById(petId) // Recargar para actualizar estado
+        viewModelScope.launch {
+            petRepository.resolve(petId)
+            pet = petRepository.findById(petId)
+        }
     }
 
-    /**
-     * Elimina la publicación actual.
-     */
     fun deletePet() {
         val petId = pet?.id ?: return
-        deleteResult = petRepository.delete(petId)
+        viewModelScope.launch {
+            deleteResult = petRepository.delete(petId)
+        }
     }
 
     fun resetDeleteResult() { deleteResult = null }
 
-    /**
-     * Comparte la publicación usando el sistema de compartir de Android.
-     * Permite compartir vía WhatsApp, correo, SMS, etc.
-     */
     fun sharePet(context: Context) {
         val currentPet = pet ?: return
         val shareText = resources.getString(
@@ -134,7 +115,7 @@ class PetDetailViewModel @Inject constructor(
             currentPet.description
         )
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type    = "text/plain"
+            type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, resources.getString(R.string.pet_share_subject))
             putExtra(Intent.EXTRA_TEXT, shareText)
         }

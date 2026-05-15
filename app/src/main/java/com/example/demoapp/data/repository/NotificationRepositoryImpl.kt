@@ -2,43 +2,52 @@ package com.example.demoapp.data.repository
 
 import com.example.demoapp.domain.model.Notification
 import com.example.demoapp.domain.repository.NotificationRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Implementación del repositorio de notificaciones.
- * Gestiona las notificaciones del sistema en memoria.
- */
 @Singleton
-class NotificationRepositoryImpl @Inject constructor() : NotificationRepository {
+class NotificationRepositoryImpl @Inject constructor(
+    private val firestore: FirebaseFirestore
+) : NotificationRepository {
 
-    // Lista reactiva de notificaciones
+    private val collection = firestore.collection("notifications")
+
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
     override val notifications: StateFlow<List<Notification>> = _notifications.asStateFlow()
 
-    override fun getByUserId(userId: String): List<Notification> {
+    init {
+        collection.addSnapshotListener { snapshot, _ ->
+            snapshot?.let {
+                _notifications.value = it.documents.mapNotNull { snap ->
+                    snap.toObject(Notification::class.java)?.apply { id = snap.id }
+                }
+            }
+        }
+    }
+
+    override suspend fun getByUserId(userId: String): List<Notification> {
         return _notifications.value.filter { it.userId == userId }
     }
 
-    override fun add(notification: Notification) {
-        _notifications.value = _notifications.value + notification
+    override suspend fun add(notification: Notification) {
+        collection.add(notification).await()
     }
 
-    override fun markAsRead(notificationId: String): Boolean {
-        val index = _notifications.value.indexOfFirst { it.id == notificationId }
-        if (index != -1) {
-            val mutableList = _notifications.value.toMutableList()
-            mutableList[index] = mutableList[index].copy(isRead = true)
-            _notifications.value = mutableList
-            return true
+    override suspend fun markAsRead(notificationId: String): Boolean {
+        return try {
+            collection.document(notificationId).update("isRead", true).await()
+            true
+        } catch (e: Exception) {
+            false
         }
-        return false
     }
 
-    override fun getUnreadCount(userId: String): Int {
+    override suspend fun getUnreadCount(userId: String): Int {
         return _notifications.value.count { it.userId == userId && !it.isRead }
     }
 }

@@ -2,67 +2,48 @@ package com.example.demoapp.data.repository
 
 import com.example.demoapp.domain.model.Comment
 import com.example.demoapp.domain.repository.CommentRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Implementación del repositorio de comentarios.
- * Gestiona los comentarios de las publicaciones de mascotas en memoria.
- */
 @Singleton
-class CommentRepositoryImpl @Inject constructor() : CommentRepository {
+class CommentRepositoryImpl @Inject constructor(
+    private val firestore: FirebaseFirestore
+) : CommentRepository {
 
-    // Lista reactiva de comentarios
+    private val collection = firestore.collection("comments")
+
     private val _comments = MutableStateFlow<List<Comment>>(emptyList())
     override val comments: StateFlow<List<Comment>> = _comments.asStateFlow()
 
     init {
-        _comments.value = loadSampleComments()
+        collection.addSnapshotListener { snapshot, _ ->
+            snapshot?.let {
+                _comments.value = it.documents.mapNotNull { snap ->
+                    snap.toObject(Comment::class.java)?.apply { id = snap.id }
+                }
+            }
+        }
     }
 
-    override fun getByPetId(petId: String): List<Comment> {
+    override suspend fun getByPetId(petId: String): List<Comment> {
         return _comments.value.filter { it.petId == petId }
     }
 
-    override fun add(comment: Comment) {
-        _comments.value = _comments.value + comment
+    override suspend fun add(comment: Comment) {
+        collection.add(comment).await()
     }
 
-    override fun delete(commentId: String): Boolean {
-        val sizeBefore = _comments.value.size
-        _comments.value = _comments.value.filter { it.id != commentId }
-        return _comments.value.size < sizeBefore
-    }
-
-    /**
-     * Carga comentarios de ejemplo.
-     */
-    private fun loadSampleComments(): List<Comment> {
-        return listOf(
-            Comment(
-                id = "c1",
-                petId = "1",
-                authorId = "2",
-                authorName = "María López",
-                text = "¡Qué hermosa! Me gustaría saber más sobre ella."
-            ),
-            Comment(
-                id = "c2",
-                petId = "3",
-                authorId = "2",
-                authorName = "María López",
-                text = "Vi un perro similar cerca de la universidad, revisaré mañana."
-            ),
-            Comment(
-                id = "c3",
-                petId = "3",
-                authorId = "1",
-                authorName = "Juan Arango",
-                text = "¡Gracias! Cualquier información es valiosa."
-            )
-        )
+    override suspend fun delete(commentId: String): Boolean {
+        return try {
+            collection.document(commentId).delete().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

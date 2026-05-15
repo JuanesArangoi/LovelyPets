@@ -4,58 +4,63 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.demoapp.domain.model.Pet
 import com.example.demoapp.domain.repository.PetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * ViewModel para el panel de moderación.
- * Gestiona la verificación y rechazo de publicaciones pendientes.
- */
 @HiltViewModel
 class ModeratorViewModel @Inject constructor(
     private val petRepository: PetRepository
 ) : ViewModel() {
 
-    // Motivo de rechazo
     var rejectionReason by mutableStateOf("")
         private set
 
-    /**
-     * Obtiene las publicaciones pendientes de verificación.
-     */
-    fun getPendingPets(): List<Pet> {
-        return petRepository.getPendingPets()
+    private val _pendingPets = MutableStateFlow<List<Pet>>(emptyList())
+    val pendingPets: StateFlow<List<Pet>> = _pendingPets.asStateFlow()
+
+    init {
+        loadPendingPets()
+        viewModelScope.launch {
+            petRepository.pets.collect {
+                _pendingPets.value = petRepository.getPendingPets()
+            }
+        }
     }
 
-    /**
-     * Actualiza el motivo de rechazo.
-     */
+    private fun loadPendingPets() {
+        viewModelScope.launch {
+            _pendingPets.value = petRepository.getPendingPets()
+        }
+    }
+
+    fun getPendingPets(): List<Pet> = _pendingPets.value
+
     fun onRejectionReasonChange(reason: String) {
         rejectionReason = reason
     }
 
-    /**
-     * Verifica una publicación (la hace visible en el feed).
-     */
     fun verifyPet(petId: String) {
-        petRepository.verify(petId)
-    }
-
-    /**
-     * Rechaza una publicación con el motivo ingresado.
-     */
-    fun rejectPet(petId: String) {
-        if (rejectionReason.isNotBlank()) {
-            petRepository.reject(petId, rejectionReason)
-            rejectionReason = ""
+        viewModelScope.launch {
+            petRepository.verify(petId)
         }
     }
 
-    /**
-     * Limpia el motivo de rechazo.
-     */
+    fun rejectPet(petId: String) {
+        if (rejectionReason.isNotBlank()) {
+            viewModelScope.launch {
+                petRepository.reject(petId, rejectionReason)
+                rejectionReason = ""
+            }
+        }
+    }
+
     fun clearRejectionReason() {
         rejectionReason = ""
     }

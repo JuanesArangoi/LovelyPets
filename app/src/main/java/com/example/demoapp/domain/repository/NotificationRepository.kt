@@ -5,13 +5,13 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Interfaz del repositorio de notificaciones.
- * Define las operaciones para gestionar las notificaciones del sistema.
+ * Todas las operaciones son suspend para Firestore.
  */
 interface NotificationRepository {
     val notifications: StateFlow<List<Notification>>
 
-    fun getByUserId(userId: String): List<Notification>
-    fun add(notification: Notification)
-    fun markAsRead(notificationId: String): Boolean
-    fun getUnreadCount(userId: String): Int
+    suspend fun getByUserId(userId: String): List<Notification>
+    suspend fun add(notification: Notification)
+    suspend fun markAsRead(notificationId: String): Boolean
+    suspend fun getUnreadCount(userId: String): Int
 }

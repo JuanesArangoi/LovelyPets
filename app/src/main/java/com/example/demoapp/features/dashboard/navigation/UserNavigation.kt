@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.example.demoapp.features.ai.AiChatScreen
 import com.example.demoapp.features.map.MapScreen
 import com.example.demoapp.features.moderator.ModeratorPanelScreen
 import com.example.demoapp.features.notifications.NotificationsScreen
@@ -30,7 +31,7 @@ fun UserNavigation(
     ) {
         composable<DashboardRoutes.PetFeed> {
             PetListScreen(
-                paddingValues = padding, // AÑADIDO: Pasamos el padding para que no se corte al final
+                paddingValues = padding,
                 onNavigateToPetDetail = { petId ->
                     navController.navigate(DashboardRoutes.PetDetail(petId))
                 },
@@ -112,6 +113,11 @@ fun UserNavigation(
                     navController.popBackStack()
                 }
             )
+        }
+
+        // Asistente IA
+        composable<DashboardRoutes.AiChat> {
+            AiChatScreen(paddingValues = padding)
         }
 
         if (showModeratorPanel) {

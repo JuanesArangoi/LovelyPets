@@ -36,6 +36,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +60,8 @@ fun RegisterScreen(
     onNavigateBack: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
     // Definición de colores
     val customGreenDark = Color(0xFF003913)
@@ -67,6 +71,12 @@ fun RegisterScreen(
         viewModel.registerResult?.let { (userId, role) ->
             viewModel.resetForm()
             onSessionStarted(userId, role)
+        }
+    }
+
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
@@ -193,7 +203,7 @@ fun RegisterScreen(
 
             Button(
                 onClick = { viewModel.register() },
-                enabled = viewModel.isFormValid,
+                enabled = viewModel.isFormValid && !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -203,11 +213,19 @@ fun RegisterScreen(
                 ),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(
-                    text = stringResource(R.string.register_button),
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                if (isLoading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color = customGreenDark
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.register_button),
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
         }
     }

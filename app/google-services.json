@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "808298562698",
+    "project_id": "lovelypets-43ec6",
+    "storage_bucket": "lovelypets-43ec6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:808298562698:android:b1cba05322438c585b9973",
+        "android_client_info": {
+          "package_name": "com.example.demoapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyv5frjLxKRwp6f808yA0LT_HhsiY9FEU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.demoapp.data.datastore.SessionDataStore
 import com.example.demoapp.data.model.UserSession
 import com.example.demoapp.domain.model.UserRole
+import com.example.demoapp.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,17 +25,14 @@ sealed interface SessionState {
 
 /**
  * ViewModel que gestiona el estado global de la sesión.
- * Integra DataStore para persistencia de la sesión entre reinicios de la app.
+ * Integra DataStore para persistencia y Firebase Auth para signOut.
  */
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    private val sessionDataStore: SessionDataStore
+    private val sessionDataStore: SessionDataStore,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
-    /**
-     * Flujo que representa el estado actual de la sesión.
-     * Alimenta la navegación raíz de la aplicación.
-     */
     val sessionState: StateFlow<SessionState> = sessionDataStore.sessionFlow
         .map { session ->
             if (session != null) SessionState.Authenticated(session)
@@ -46,20 +44,15 @@ class SessionViewModel @Inject constructor(
             initialValue = SessionState.Loading
         )
 
-    /**
-     * Guarda la sesión del usuario en DataStore tras un login exitoso.
-     */
     fun login(userId: String, role: UserRole) {
         viewModelScope.launch {
             sessionDataStore.saveSession(userId, role)
         }
     }
 
-    /**
-     * Limpia la sesión del usuario en DataStore (logout).
-     */
     fun logout() {
         viewModelScope.launch {
+            userRepository.signOut() // Firebase Auth sign out
             sessionDataStore.clearSession()
         }
     }

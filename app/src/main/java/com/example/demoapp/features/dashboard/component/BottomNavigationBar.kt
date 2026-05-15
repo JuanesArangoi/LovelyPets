@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.ShieldMoon
 import androidx.compose.material3.Icon
@@ -90,7 +91,8 @@ data class Destination(
 @Composable
 fun userDestinations(): List<Destination> = listOf(
     Destination(DashboardRoutes.PetFeed, "Inicio", Icons.Default.Home),
-    Destination(DashboardRoutes.Map, "Mapa", Icons.Default.LocationOn), // MAPA AÑADIDO
+    Destination(DashboardRoutes.Map, "Mapa", Icons.Default.LocationOn),
+    Destination(DashboardRoutes.AiChat, "IA", Icons.Default.SmartToy),
     Destination(DashboardRoutes.CreatePet, "Publicar", Icons.Default.Add),
     Destination(DashboardRoutes.Profile, "Perfil", Icons.Default.AccountCircle)
 )

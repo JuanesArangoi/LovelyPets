@@ -4,22 +4,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.demoapp.core.utils.ValidatedField
 import com.example.demoapp.domain.model.PetCategory
 import com.example.demoapp.domain.repository.PetRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * ViewModel para editar una publicación existente de mascota.
- * Pre-carga los datos de la publicación y maneja la actualización.
- */
 @HiltViewModel
 class EditPetViewModel @Inject constructor(
     private val petRepository: PetRepository
 ) : ViewModel() {
 
-    // Campos del formulario con validación
     val title = ValidatedField("") { value ->
         when {
             value.isEmpty() -> "El título es obligatorio"
@@ -28,7 +25,7 @@ class EditPetViewModel @Inject constructor(
         }
     }
 
-    val breed = ValidatedField("") { _ -> null } // Raza es opcional
+    val breed = ValidatedField("") { _ -> null }
 
     val description = ValidatedField("") { value ->
         when {
@@ -69,27 +66,25 @@ class EditPetViewModel @Inject constructor(
     var updateResult by mutableStateOf<Boolean?>(null)
         private set
 
-    // ID de la publicación que se está editando
     private var petId: String = ""
 
     val isFormValid: Boolean
         get() = title.isValid && description.isValid && animalType.isValid
                 && size.isValid && photoUrl.isValid
 
-    /**
-     * Carga los datos de la publicación existente en los campos del formulario.
-     */
     fun loadPet(id: String) {
         petId = id
-        val pet = petRepository.findById(id) ?: return
-        title.onChange(pet.title)
-        description.onChange(pet.description)
-        animalType.onChange(pet.animalType)
-        breed.onChange(pet.breed)
-        size.onChange(pet.size)
-        photoUrl.onChange(pet.photoUrl)
-        selectedCategory = pet.category
-        hasVaccines = pet.hasVaccines
+        viewModelScope.launch {
+            val pet = petRepository.findById(id) ?: return@launch
+            title.onChange(pet.title)
+            description.onChange(pet.description)
+            animalType.onChange(pet.animalType)
+            breed.onChange(pet.breed)
+            size.onChange(pet.size)
+            photoUrl.onChange(pet.photoUrl)
+            selectedCategory = pet.category
+            hasVaccines = pet.hasVaccines
+        }
     }
 
     fun onCategorySelected(category: PetCategory) {
@@ -100,28 +95,27 @@ class EditPetViewModel @Inject constructor(
         hasVaccines = value
     }
 
-    /**
-     * Actualiza la publicación usando el PetRepository.
-     */
     fun updatePet() {
-        val existingPet = petRepository.findById(petId)
-        if (existingPet == null || !isFormValid) {
-            updateResult = false
-            return
+        viewModelScope.launch {
+            val existingPet = petRepository.findById(petId)
+            if (existingPet == null || !isFormValid) {
+                updateResult = false
+                return@launch
+            }
+
+            val updatedPet = existingPet.copy(
+                title = title.value,
+                description = description.value,
+                category = selectedCategory,
+                animalType = animalType.value,
+                breed = breed.value,
+                size = size.value,
+                hasVaccines = hasVaccines,
+                photoUrl = photoUrl.value
+            )
+
+            updateResult = petRepository.update(updatedPet)
         }
-
-        val updatedPet = existingPet.copy(
-            title = title.value,
-            description = description.value,
-            category = selectedCategory,
-            animalType = animalType.value,
-            breed = breed.value,
-            size = size.value,
-            hasVaccines = hasVaccines,
-            photoUrl = photoUrl.value
-        )
-
-        updateResult = petRepository.update(updatedPet)
     }
 
     fun resetResult() {
