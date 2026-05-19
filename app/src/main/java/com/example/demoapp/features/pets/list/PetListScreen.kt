@@ -28,6 +28,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,7 +54,7 @@ fun PetListScreen(
     onNavigateToPetDetail: (String) -> Unit,
     onNavigateToCreatePet: () -> Unit = {}
 ) {
-    val pets = viewModel.getPets()
+    val pets by viewModel.pets.collectAsState()
     val customGreenDark = Color(0xFF003913)
     val customBlueLight = Color(0xFFE3F2FD)
 

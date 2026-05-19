@@ -45,6 +45,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,7 +75,8 @@ fun UserProfileScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeletePetDialog by remember { mutableStateOf<String?>(null) }
 
-    val currentUser = viewModel.getCurrentUser()
+    val currentUser by viewModel.currentUser.collectAsState()
+    val userPets by viewModel.userPets.collectAsState()
 
     // Colores personalizados
     val customGreenDark = Color(0xFF003913)
@@ -132,14 +134,14 @@ fun UserProfileScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (currentUser != null) {
+            currentUser?.let { user ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = customBlueLight)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(stringResource(R.string.profile_email_label), color = Color.Gray)
-                        Text(currentUser.email, fontWeight = FontWeight.Bold, color = customGreenDark)
+                        Text(user.email, fontWeight = FontWeight.Bold, color = customGreenDark)
                     }
                 }
 
@@ -151,8 +153,8 @@ fun UserProfileScreen(
                         modifier = Modifier.padding(16.dp).fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(stringResource(R.string.profile_level_label, currentUser.level.label), fontWeight = FontWeight.Bold, color = customGreenDark)
-                        Text(stringResource(R.string.profile_points_label, currentUser.points), fontWeight = FontWeight.Bold, color = customGreenDark)
+                        Text(stringResource(R.string.profile_level_label, user.level.label), fontWeight = FontWeight.Bold, color = customGreenDark)
+                        Text(stringResource(R.string.profile_points_label, user.points), fontWeight = FontWeight.Bold, color = customGreenDark)
                     }
                 }
             }
@@ -180,7 +182,7 @@ fun UserProfileScreen(
             // ===== MIS PUBLICACIONES =====
             Text("📋 Mis publicaciones", fontWeight = FontWeight.Bold, color = customGreenDark)
 
-            val userPets = viewModel.getUserPets()
+            // userPets ya se observa reactivamente arriba con collectAsState
             if (userPets.isEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
